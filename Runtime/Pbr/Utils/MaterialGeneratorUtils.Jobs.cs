@@ -1,0 +1,66 @@
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using UnityEngine;
+
+namespace Unity.Muse.Texture
+{
+    public static partial class MaterialGeneratorUtils
+    {
+        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
+        struct ConvertTextToDxtnmJob : IJobParallelFor
+        {
+            public NativeArray<Color32> IncomingPixels;
+            public NativeArray<Color32> OutputPixels;
+
+            public void Execute(int index)
+            {
+                //Incoming: ARGB32
+                //Output: RGBA32
+                //Swizzle ensues.
+                var inputPixel = IncomingPixels[index];
+
+                var outputPixel = inputPixel;
+                outputPixel.r = 255;
+                outputPixel.g = inputPixel.b;
+                outputPixel.b = 255;
+                outputPixel.a = inputPixel.g;
+
+                OutputPixels[index] = outputPixel;
+            }
+        }
+#if HDRP_PIPELINE_ENABLED
+        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
+        struct CombineMaterialMaskMap : IJobParallelFor
+        {
+            public NativeArray<Color32> MetallicColors;
+            [ReadOnly]
+            public NativeArray<Color32> RoughnessColors;
+
+            public void Execute(int index)
+            {
+                //Both native arrays are actually in ARGB32 so swizzle appropriately
+                var col = new Color32((byte)(255 - RoughnessColors[index].a), MetallicColors[index].g, 255, 0);
+                MetallicColors[index] = col;
+            }
+        }
+#endif
+
+        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
+        struct CombineMaterialRoughnessMap : IJobParallelFor
+        {
+            public NativeArray<Color32> MetallicColors;
+            [ReadOnly]
+            public NativeArray<Color32> RoughnessColors;
+
+            public void Execute(int index)
+            {
+                //Both native arrays are actually in ARGB32 so swizzle appropriately
+                var metallicPixel = MetallicColors[index];
+                metallicPixel.r = (byte)(byte.MaxValue - RoughnessColors[index].a);
+
+                MetallicColors[index] = metallicPixel;
+            }
+        }
+    }
+}

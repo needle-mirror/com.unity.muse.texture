@@ -1,0 +1,82 @@
+using System;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Unity.Muse.Texture
+{
+    public class MaterialPreviewElement : VisualElement
+    {
+        protected internal readonly Image m_PreviewImage;
+        readonly Vector2Int k_PreviewSize = new(2048, 2048);
+        const float k_CameraLookDistance = 5f;
+
+        protected internal Material m_Material;
+        internal RotationManipulator RotationManipulator { get; private set; }
+
+        protected internal static MaterialPreviewer s_MaterialPreviewer;
+        
+        internal Image previewImage => m_PreviewImage;
+        
+        public new class UxmlFactory : UxmlFactory<MaterialPreviewElement, UxmlTraits> { }
+
+        protected internal bool m_PreviewEnabled = true;
+        protected internal bool m_ModifierRotation = true;
+
+        public MaterialPreviewElement()
+        {
+            RotationManipulator ??= new RotationManipulator(m_ModifierRotation);
+            RegisterCallback<AttachToPanelEvent>(OnAttach);
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
+
+            style.flexGrow = 1;
+
+            m_PreviewImage = new Image
+            {
+                style =
+                {
+                    flexGrow = 1f
+                }
+            };
+
+            Add(m_PreviewImage);
+
+            s_MaterialPreviewer ??= new MaterialPreviewer();
+            m_PreviewImage.image = s_MaterialPreviewer.CreateDefaultRenderTexture();
+        }
+
+
+        protected void SetMaterial(Material material)
+        {
+            m_Material = material;
+            Render(Vector2.zero);
+        }
+
+        void OnAttach(AttachToPanelEvent evt)
+        {
+            RotationManipulator.OnDrag += OnDrag;
+            
+            this.AddManipulator(RotationManipulator);
+        }
+
+        void OnDetach(DetachFromPanelEvent evt)
+        {
+            this.RemoveManipulator(RotationManipulator);
+            RotationManipulator.OnDrag -= OnDrag;
+        }
+
+        void OnDrag(Vector2 dragValue)
+        {
+            Render(dragValue);
+        }
+
+        internal virtual void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default)
+        {
+            s_MaterialPreviewer.Render(m_Material, m_PreviewImage.image as RenderTexture, dragValue, k_CameraLookDistance, previewType, environment);
+        }
+
+        internal void RefreshRender()
+        {
+            Render(RotationManipulator.TotalRotation);
+        }
+    }
+}

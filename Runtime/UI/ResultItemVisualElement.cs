@@ -1,0 +1,277 @@
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+#endif
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Unity.Muse.Common;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Unity.Muse.Texture
+{
+    internal class ResultItemVisualElement : PreviewElement
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")]
+        public static extern void DownloadFile(byte[] array, int byteLength, string fileName);
+#endif
+        static List<PbrMaterialData> s_PbrMaterialData = new();
+
+        public event Action<GenericLoader.State> OnLoadingStateChanged;
+
+        public ResultItemVisualElement(Artifact artifact)
+            : base(s_PbrMaterialData, artifact)
+        {
+            EnableInClassList("no-mouse", !Input.mousePresent);
+
+            AddToClassList("muse-asset-image");
+            SetPreviewImage(artifact);
+
+            m_PreviewImage.GenericLoader.OnLoadingStateChanged += LoadingStateChanged;
+            m_PreviewPbr.GenericLoader.OnLoadingStateChanged += LoadingStateChanged;
+
+
+            if (artifact is ImageArtifact imageArtifact)
+                SetCurrentState(imageArtifact.IsPbrMode ? PreviewType.PBR : PreviewType.Image);
+        }
+
+        void LoadingStateChanged(GenericLoader.State state)
+        {
+            OnLoadingStateChanged?.Invoke(state);
+        }
+
+        public override bool TryGoToRefineMode()
+        {
+            if (canRefine)
+            {
+                OnRefineClicked();
+                return true;
+            }
+
+            return false;
+        }
+
+        public override IEnumerable<ContextMenuAction> GetAvailableActions(ActionContext context)
+        {
+            var actions = new List<ContextMenuAction>();
+            var isUpscale = Artifact.GetOperators().Find(x => x is UpscaleOperator upscaleOperator && upscaleOperator.Enabled()) != null;
+
+            if (CurrentModel.isRefineMode)
+            {
+                actions.Add(new ContextMenuAction
+                {
+                    id = (int)Actions.SetAsThumbnail,
+                    label = "Set as Thumbnail",
+                    enabled = !context.isMultiSelect
+                });
+
+                actions.Add(new ContextMenuAction
+                {
+                    id = (int)Actions.Branch,
+                    label = "Branch",
+                    enabled = !context.isMultiSelect
+                });
+            }
+
+            actions.Add(new ContextMenuAction
+            {
+                id = (int)Actions.GenerationSettings,
+                label = "Generation Settings",
+                enabled = !context.isMultiSelect
+            });
+
+            if (Artifact is ImageArtifact)
+            {
+                var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
+                actions.Add(new ContextMenuAction
+                {
+                    id = (int)Actions.SwitchPreview,
+                    label = context.isMultiSelect ? "Switch Preview" : $"View as {changeState.ToString()}",
+                    enabled = true,
+                });
+            }
+
+            actions.Add(new ContextMenuAction
+            {
+                id = (int)Actions.SetAsReference,
+                label = "Set as Reference",
+                enabled = !context.isMultiSelect
+            });
+
+            if (!isUpscale && Artifact is IVariateArtifact variateArtifact)
+            {
+                var numVariations = m_Artifact.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
+
+                actions.Add(new ContextMenuAction
+                {
+                    id = (int)Actions.CreateVariations,
+                    label = $"Create {numVariations} Variations",
+                    enabled = true,
+                });
+            }
+
+            var exportAvailable = m_ActivePreviewState switch
+            {
+                PreviewType.PBR => m_PreviewPbr.CurrentMaterial != null,
+                PreviewType.Image => m_PreviewImage.image != null,
+                _ => false
+            };
+
+            if (Artifact is Artifact<Texture2D> && exportAvailable)
+            {
+                actions.Add(new ContextMenuAction
+                {
+                    enabled = true,
+                    id = (int)Actions.Save,
+                    label = context.isMultiSelect ? TextContent.exportMultiple : TextContent.exportSingle
+                });
+                actions.Add(new ContextMenuAction
+                {
+                    enabled = true,
+                    id = (int)Actions.Delete,
+                    label = context.isMultiSelect ? TextContent.deleteMultiple : TextContent.deleteSingle
+                });
+                if (context.isMultiSelect)
+                {
+                    actions.Add(new ContextMenuAction
+                    {
+                        enabled = true,
+                        id = (int)Actions.Star,
+                        label = TextContent.starMultiple
+                    });
+                    actions.Add(new ContextMenuAction
+                    {
+                        enabled = true,
+                        id = (int)Actions.UnStar,
+                        label = TextContent.unStarMultiple,
+                    });
+                }
+
+                if (!isUpscale && Artifact is IUpscaleArtifact)
+                {
+                    actions.Add(new ContextMenuAction
+                    {
+                        id = (int)Actions.Upscale,
+                        label = "Upscale",
+                        enabled = true,
+                    });
+                }
+            }
+
+            return actions;
+        }
+
+        public override bool TrySaveAsset(string directory)
+        {
+            if (m_ActivePreviewState == PreviewType.PBR)
+            {
+                var path = Path.Combine(directory, $"{m_Artifact.Guid}.mat");
+                path = path.Replace(Application.dataPath, "Assets");
+                ExportHandler.ExportWithoutPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData, path);
+                return true;
+            }
+
+            return base.TrySaveAsset(directory);
+        }
+
+        /// <summary>
+        /// Perform action to perform on the selected artifact.
+        /// </summary>
+        /// <param name="actionId">The action to perform.</param>
+        /// <param name="context">The action context.</param>
+        /// <param name="pointerEvent">The pointer event at the source of the action.</param>
+        public override void PerformAction(int actionId, ActionContext context, IPointerEvent pointerEvent)
+        {
+            if (CurrentModel == null)
+                return;
+
+            var id = (Actions)actionId;
+
+            switch (id)
+            {
+                case Actions.SwitchPreview:
+                    var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
+                    SetCurrentState(changeState);
+                    break;
+                case Actions.Refine:
+                    CurrentModel.RefineArtifact(m_Artifact);
+                    break;
+                case Actions.Save:
+#if UNITY_EDITOR
+                    switch (m_ActivePreviewState)
+                    {
+                        case PreviewType.Image:
+                            CurrentModel.ExportArtifact(m_Artifact);
+                            break;
+                        case PreviewType.PBR:
+                            ExportHandler.ExportWithPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData);
+                            break;
+                    }
+#endif
+                    break;
+                case Actions.Download:
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    (m_Artifact as Artifact<Texture2D>)?.GetArtifact((Texture2D artifactInstance, byte[] rawData, string errorMessage) =>
+                    {
+                        if (artifactInstance == null)
+                            return;
+
+                        var bytes = artifactInstance.EncodeToPNG();
+                        DownloadFile(bytes, bytes.Length, m_Artifact.Guid + ".png");
+                    }, true);
+#endif
+                    break;
+                default:
+                    base.PerformAction(actionId, context, pointerEvent);
+                    break;
+            }
+        }
+
+        public override UnityEngine.Texture Preview
+        {
+            get
+            {
+                return ActivePreviewState switch
+                {
+                    PreviewType.PBR => m_PreviewPbr.previewImage.image,
+                    PreviewType.Image => m_PreviewImage.image as Texture2D,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+        }
+
+        public override VisualElement PaintSurfaceElement => m_PreviewImage;
+
+        public override void DragEditor()
+        {
+            var artifactsAndType = GetArtifactsAndType();
+            CurrentModel.EditorStartDrag(artifactsAndType.name, artifactsAndType.artifacts);
+        }
+
+        public override (string name, IList<Artifact> artifacts) GetArtifactsAndType()
+        {
+            if (m_ActivePreviewState == PreviewType.Image)
+            {
+                return ("Texture Image", new List<Artifact> { Artifact });
+            }
+            else
+            {
+                var artifacts = new List<Artifact>(5) { Artifact };
+                foreach (var pbrMaterialData in s_PbrMaterialData)
+                {
+                    if (pbrMaterialData.BaseMapSourceArtifact == Artifact)
+                    {
+                        artifacts.Add(pbrMaterialData.MetallicMapSourceArtifact);
+                        artifacts.Add(pbrMaterialData.HeightmapSourceArtifact);
+                        artifacts.Add(pbrMaterialData.NormalMapSourceArtifact);
+                        artifacts.Add(pbrMaterialData.RoughnessMapSourceArtifact);
+                    }
+                }
+
+                return ("PBR Material", artifacts);
+            }
+        }
+    }
+}
