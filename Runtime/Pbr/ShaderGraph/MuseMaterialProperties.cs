@@ -29,6 +29,10 @@ namespace Unity.Muse.Texture
         /// Key for height map
         /// </summary>
         public static readonly int heightMapKey = Shader.PropertyToID("_HeightMap"); 
+        /// <summary>
+        /// key for ambient occlusion map
+        /// </summary>
+        public static readonly int ambientOcclusionMapKey = Shader.PropertyToID("_AmbientOcclusionMap");
         
         //Material Edit properties
         /// <summary>

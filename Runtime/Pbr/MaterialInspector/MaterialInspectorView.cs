@@ -55,12 +55,16 @@ namespace Unity.Muse.Texture
             var editSection = new ExVisualElement();
             editSection.AddToClassList("muse-material--section");
             Add(editSection);
-            
-            editSection.Add(new Heading()
+
+            var previewTitle = new Text()
             {
                 text = "Preview"
-            });
+            };
             
+            previewTitle.AddToClassList("muse-inspector__title");
+            
+            editSection.Add(previewTitle);
+
             var tilingContainer = new ExVisualElement()
             {
                 tooltip = "Tiling the maps"
@@ -76,7 +80,8 @@ namespace Unity.Muse.Texture
             
             tilingContainer.Add(new Vector2Field()
             {
-                name = "TilingField"
+                name = "TilingField",
+                size = Size.S
             }); 
             
             var offsetContainer = new ExVisualElement()
@@ -93,7 +98,8 @@ namespace Unity.Muse.Texture
             
             offsetContainer.Add(new Vector2Field()
             {
-               name = "OffsetField" 
+               name = "OffsetField",
+               size = Size.S
             });
             
             var rotationContainer = new ExVisualElement()
@@ -110,7 +116,8 @@ namespace Unity.Muse.Texture
             
             rotationContainer.Add(new FloatField()
             {
-                name = "RotationField"
+                name = "RotationField",
+                size = Size.S
             });
             
             var verticalFlipContainer = new ExVisualElement()
@@ -154,10 +161,14 @@ namespace Unity.Muse.Texture
             mapsSection.AddToClassList("muse-material--section");
             Add(mapsSection);
             
-            mapsSection.Add(new Heading()
+            var mapsTitle = new Text()
             {
-                text = "PBR Maps"
-            });
+                text = "Maps"
+            };
+            
+            mapsTitle.AddToClassList("muse-inspector__title");
+            
+            mapsSection.Add(mapsTitle);
             
             mapsSection.Add(new SliderFloat()
             {

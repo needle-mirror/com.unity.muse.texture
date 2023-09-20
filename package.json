@@ -1,11 +1,11 @@
 {
   "name": "com.unity.muse.texture",
   "displayName": "Muse Texture Tool",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "unity": "2022.3",
   "description": "Muse Texture Tool is a package that provides a set of tools to help create AI-generated texture content from text input in Unity.",
   "dependencies": {
-    "com.unity.muse.common": "0.1.2",
+    "com.unity.muse.common": "0.2.0",
     "com.unity.shadergraph": "14.0.8"
   },
   "samples": [
@@ -16,19 +16,19 @@
     }
   ],
   "relatedPackages": {
-    "com.unity.muse.texture.tests": "0.1.2",
-    "com.unity.muse.common.tests": "0.1.2"
+    "com.unity.muse.texture.tests": "0.2.0",
+    "com.unity.muse.common.tests": "0.2.0"
   },
   "_upm": {
-    "changelog": ""
+    "changelog": "### Added\n\n- Add error message and retry button when generation has failed.\n\n### Changed\n\n- PBR options are always visible in refinement.\n- Change PBR UI.\n- Disable in-painting during PBR refinement.\n\n### Fixed\n\n- Fix invalid artifacts not loading.\n- Fix inverted normal map on export.\n- Fix artifact preview not loading when creating a new scene.\n- Fix no default selected preview item in refinement."
   },
   "upmCi": {
-    "footprint": "732bc550da113a640f899defb2729fa07ddde728"
+    "footprint": "5080544472e14de3bc7596ef38e30172ae5147b6"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@0.1/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@0.2/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "7055fd5bc179fc86b6880b8188edb53fde64667f"
+    "revision": "da1fe357fbde6534473ea14e26b9c5c75435248f"
   }
 }

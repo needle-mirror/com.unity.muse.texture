@@ -33,31 +33,33 @@ namespace Unity.Muse.Texture.Editor
                 AssetDatabase.CreateAsset(materialAsset, path);
             }
 
-            var baseMap = SaveAndLoadTexture2D("baseMap", materialData.BaseMapPNGData, materialAsset);
+            var baseMap = SaveAndLoadTexture2D("baseMap", materialData.BaseMapPNGData, materialAsset, false, true);
+            var diffuseMap = SaveAndLoadTexture2D("diffuseMap", materialData.DiffuseMapPNGData, materialAsset);
             var normalMap = SaveAndLoadTexture2D("normalMap", materialData.NormalMapPNGData, materialAsset, true);
             var metallicMap = SaveAndLoadTexture2D("metallicMap", materialData.MetallicMapPNGData, materialAsset);
             var roughnessMap = SaveAndLoadTexture2D("roughnessMap", materialData.RoughnessMapPNGData, materialAsset);
             var heightMap = SaveAndLoadTexture2D("heightMap", materialData.HeightmapPNGData, materialAsset);
-            
-            
-            materialAsset.SetTexture(MuseMaterialProperties.baseMapKey, baseMap);
+            var aoMap = SaveAndLoadTexture2D("ambientOcclusionMap", materialData.AOMapPNGData, materialAsset);
+
+            materialAsset.SetTexture(MuseMaterialProperties.baseMapKey, diffuseMap);
             materialAsset.SetTexture(MuseMaterialProperties.normalMapKey, normalMap);
             materialAsset.SetTexture(MuseMaterialProperties.metallicMapKey, metallicMap);
             materialAsset.SetTexture(MuseMaterialProperties.roughnessMapKey, roughnessMap);
             materialAsset.SetTexture(MuseMaterialProperties.heightMapKey, heightMap);
-            
+            materialAsset.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap);
+
 #if !HDRP_PIPELINE_ENABLED
             materialAsset.SetFloat(MuseMaterialProperties.useDisplacement, 0f);
 #endif
-            
+
             CopyPbrMaterialProperty(materialAsset, baseArtifact);
 
             EditorUtility.SetDirty(materialAsset);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(materialAsset));
         }
-        
-        static Texture2D SaveAndLoadTexture2D(string name, byte[] pngData, Material materialAsset, bool isNormalMap = false)
+
+        static Texture2D SaveAndLoadTexture2D(string name, byte[] pngData, Material materialAsset, bool isNormalMap = false, bool isSRGB = false)
         {
             // Get path of the base asset
             var baseAssetPath = AssetDatabase.GetAssetPath(materialAsset);
@@ -80,12 +82,14 @@ namespace Unity.Muse.Texture.Editor
             var pngPath = Path.Combine(newFolderPath, name  + ".png");
 
             // Save the PNG data to a file
+            if (pngData is null)
+                return new Texture2D(2,2);
             File.WriteAllBytes(pngPath, pngData);
-            
+
             // Ensure the new asset is included in the AssetDatabase
             AssetDatabase.ImportAsset(pngPath, ImportAssetOptions.ForceUpdate);
 
-            if (isNormalMap)
+            if (isNormalMap || !isSRGB)
             {
                 var textureImporter = AssetImporter.GetAtPath(pngPath) as TextureImporter;
 
@@ -93,17 +97,22 @@ namespace Unity.Muse.Texture.Editor
                 var textureImporterSettings = new TextureImporterSettings();
                 textureImporter.ReadTextureSettings(textureImporterSettings);
 
-                // Enable normal map
-                textureImporterSettings.textureType = TextureImporterType.NormalMap;
-                textureImporterSettings.convertToNormalMap = false;
-                
+                if (isNormalMap)
+                {
+                    // Enable normal map
+                    textureImporterSettings.textureType = TextureImporterType.NormalMap;
+                    textureImporterSettings.convertToNormalMap = false;
+                }
+
+                textureImporterSettings.sRGBTexture = isSRGB;
+
                 // Apply settings
                 textureImporter.SetTextureSettings(textureImporterSettings);
-                
+
                 // Ensure the new asset is included in the AssetDatabase
                 AssetDatabase.ImportAsset(pngPath, ImportAssetOptions.ForceUpdate);
             }
-            
+
             // Load the texture from the saved PNG file
             var newTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(pngPath);
 
@@ -113,10 +122,10 @@ namespace Unity.Muse.Texture.Editor
         internal static void CopyPbrMaterialProperty(Material material, Artifact baseArtifact)
         {
             if (baseArtifact is not ImageArtifact imageArtifact) return;
-            
+
             imageArtifact.MaterialMetaData ??= new ImageArtifact.MaterialData(true);
-            material.SetFloat(MuseMaterialProperties.heightIntensity, imageArtifact.MaterialMetaData.height); 
-            material.SetFloat(MuseMaterialProperties.metallicIntensity, imageArtifact.MaterialMetaData.metallic); 
+            material.SetFloat(MuseMaterialProperties.heightIntensity, imageArtifact.MaterialMetaData.height);
+            material.SetFloat(MuseMaterialProperties.metallicIntensity, imageArtifact.MaterialMetaData.metallic);
             material.SetFloat(MuseMaterialProperties.roughnessIntensity, imageArtifact.MaterialMetaData.roughness);
         }
     }

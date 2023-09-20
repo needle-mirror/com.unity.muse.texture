@@ -23,12 +23,12 @@ namespace Unity.Muse.Texture
 
         public ImageArtifact()
             : base(string.Empty, 0) { }
-        
+
 
         /// <inheritdoc cref="Artifact{T}"/>
         public override Texture2D ConstructFromData(byte[] data)
         {
-            Texture2D tex = new Texture2D(2, 2);
+            Texture2D tex = TextureUtils.Create();
             tex.LoadImage(data);
 
             return tex;
@@ -149,6 +149,17 @@ namespace Unity.Muse.Texture
             }
         }
 
+        public override void RetryGenerate(Model model)
+        {
+            var referenceOp = m_Operators.GetOperator<ReferenceOperator>();
+            var isVariation = referenceOp != null && referenceOp.Enabled();
+
+            if(isVariation)
+                Variate(m_Operators);
+            else
+                Generate(model);
+        }
+
         public override void Variate(List<IOperator> ops)
         {
             byte[] buffer = new byte[4];
@@ -210,18 +221,15 @@ namespace Unity.Muse.Texture
 
         void OnGeneratingDone(GuidResponse response, string error)
         {
-            if (response == null)
+            if (response != null)
             {
-                //Do not report anything here as it was a web request error, which should have been logged already
-                return;
+                Guid = response.guid;
+                Seed = response.seed;
             }
 
-            Guid = response.guid;
-            Seed = response.seed;
-
-            OnGenerationDone?.Invoke();
+            OnGenerationDone?.Invoke(this, error);
         }
-        
+
         /// <summary>
         /// Creating a new MaterialRefineView
         /// </summary>
@@ -260,7 +268,7 @@ namespace Unity.Muse.Texture
         {
             GenerativeAIBackend.GenerateInpainting(prompt, sourceGuid, mask, maskType, settings, onDone);
         }
-        
+
         /// <summary>
         /// Meta data associated with Generated Materials
         /// </summary>
@@ -286,7 +294,7 @@ namespace Unity.Muse.Texture
             public MaterialData(bool initializeData = false)
             {
                 if(!initializeData) return;
-                
+
                 var shader = MaterialGeneratorUtils.GetDefaultShaderForPipeline();
                 height = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_HeightIntensity"));
                 metallic = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_MetallicIntensity"));

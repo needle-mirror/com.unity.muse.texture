@@ -71,6 +71,9 @@ namespace Unity.Muse.Texture
                 case MaterialPreviewItem.HeightMap:
                     RenderMap(MuseMaterialProperties.heightMapKey);
                     break;
+                case MaterialPreviewItem.AOMap:
+                    RenderMap(MuseMaterialProperties.ambientOcclusionMapKey);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

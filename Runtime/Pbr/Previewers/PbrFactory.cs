@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Unity.Muse.Common;
+using Unity.Muse.Texture.Pbr.Cache;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Unity.Muse.Texture
 {
@@ -13,7 +15,11 @@ namespace Unity.Muse.Texture
         public event Action<float> OnProgress;
 
         PbrMapGeneratorJob m_CurrentMapGenerationJob;
+        UnityWebRequestAsyncOperation m_CurrentDiffuseGenerationRequest;
+        
         readonly List<PbrMaterialData> m_PbrMaterialData;
+        
+        ProcessedPbrMaterialData m_CurrentProcessedData;
 
         public PbrFactory(List<PbrMaterialData> viewModel)
         {
@@ -73,6 +79,9 @@ namespace Unity.Muse.Texture
                 && artifact == m_CurrentMapGenerationJob.BaseMapArtifact)
             {
                 m_CurrentMapGenerationJob.Start();
+                m_CurrentDiffuseGenerationRequest =
+                    MuseTextureBackend.GenerateDiffuseMap(m_CurrentMapGenerationJob.BaseMapArtifact,
+                        OnDiffuseRequestCompleted);
             }
         }
 
@@ -80,60 +89,66 @@ namespace Unity.Muse.Texture
         {
             if (!success)
             {
+                CancelCurrentGeneration();
                 OnProgress?.Invoke(100f);
+                OnMaterialCreated?.Invoke(null, materialData);
                 return;
             }
 
-            foreach (var data in m_PbrMaterialData.Where(data => data.BaseMapSourceArtifact.Guid == materialData.BaseMap.Guid))
-            {
-                data.MetallicMapSourceArtifact = materialData.MetallicMap;
-                data.HeightmapSourceArtifact = materialData.HeightmapMap;
-                data.NormalMapSourceArtifact = materialData.NormalMap;
-                data.RoughnessMapSourceArtifact = materialData.RoughnessMap;
-            }
+            var currentMaterialData =
+                m_PbrMaterialData.First(data => data.BaseMapSourceArtifact.Guid == materialData.BaseMap.Guid);
 
-            var newMaterial = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
+            currentMaterialData.MetallicMapSourceArtifact = materialData.MetallicMap;
+            currentMaterialData.HeightmapSourceArtifact = materialData.HeightmapMap;
+            currentMaterialData.NormalMapSourceArtifact = materialData.NormalMap;
+            currentMaterialData.RoughnessMapSourceArtifact = materialData.RoughnessMap;
+            m_CurrentProcessedData.BaseMap = materialData.BaseMap;
+            m_CurrentProcessedData.BaseMapPNGData = materialData.BaseMapPNGData;
+            m_CurrentProcessedData.NormalMap = materialData.NormalMap;
+            m_CurrentProcessedData.NormalMapPNGData = materialData.NormalMapPNGData;
+            m_CurrentProcessedData.MetallicMap = materialData.MetallicMap;
+            m_CurrentProcessedData.MetallicMapPNGData = materialData.MetallicMapPNGData;
+            m_CurrentProcessedData.RoughnessMap = materialData.RoughnessMap;
+            m_CurrentProcessedData.RoughnessMapPNGData = materialData.RoughnessMapPNGData;
+            m_CurrentProcessedData.HeightmapMap = materialData.HeightmapMap;
+            m_CurrentProcessedData.HeightmapPNGData = materialData.HeightmapPNGData;
 
-            MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(materialData, newMaterial, false);
-            
-            OnMaterialCreated?.Invoke(newMaterial, materialData);
-            CancelCurrentGeneration();
+            EvaluateJobsCompleteness();
         }
-        
-        /// <summary>
-        /// Saves the Texture2D as a PNG.
-        /// </summary>
-        /// <param name="texture">The texture to save.</param>
-        /// <param name="fileName">Name of the file without extension.</param>
-        /// <param name="directoryPath">Directory path to save the texture in. Uses Application.persistentDataPath if not provided.</param>
-        public static void SaveTextureAsPNG(Texture2D texture, string fileName, string directoryPath = null)
+
+        void OnDiffuseRequestCompleted(GuidResponse response, string error)
         {
-            if (texture == null)
+            if (response == null || !string.IsNullOrEmpty(error))
             {
-                Debug.LogError("Texture is null. Cannot save.");
+                CancelCurrentGeneration();
+                OnProgress?.Invoke(100f);
+                OnMaterialCreated?.Invoke(null, new ProcessedPbrMaterialData());
                 return;
             }
-
-            if (string.IsNullOrEmpty(fileName))
+            
+            var currentMaterialData =
+                m_PbrMaterialData.First(data => data.BaseMapSourceArtifact.Guid == m_CurrentMapGenerationJob.BaseMapArtifact.Guid);
+            
+            currentMaterialData.DiffuseMapSourceArtifact = new ImageArtifact(response.guid, uint.MinValue);
+            m_CurrentProcessedData.DiffuseMap = currentMaterialData.DiffuseMapSourceArtifact;
+            
+            m_CurrentProcessedData.DiffuseMap.GetArtifact((_, rawData, message) =>
             {
-                Debug.LogError("FileName is null or empty. Cannot save.");
-                return;
-            }
+                if (!string.IsNullOrEmpty(message))
+                {
+                    CancelCurrentGeneration();
+                    OnProgress?.Invoke(100f);
+                    OnMaterialCreated?.Invoke(null, new ProcessedPbrMaterialData());
+                    return;
+                }
+                
+                m_CurrentProcessedData.DiffuseMapPNGData = rawData; 
+                EvaluateJobsCompleteness();
 
-            // Use the persistent data path if no path is provided.
-            if (string.IsNullOrEmpty(directoryPath))
-            {
-                directoryPath = Application.persistentDataPath;
-            }
-
-            string filePath = Path.Combine(directoryPath, fileName + ".png");
-        
-            byte[] pngBytes = texture.EncodeToPNG();
-            File.WriteAllBytes(filePath, pngBytes);
-
-            Debug.Log($"Saved texture to: {filePath}");
+                
+            }, false);
         }
-
+        
         void OnPBRJobProgressChanged(float obj)
         {
             OnProgress?.Invoke(obj * 100f);
@@ -141,12 +156,40 @@ namespace Unity.Muse.Texture
 
         public void CancelCurrentGeneration()
         {
+            m_CurrentProcessedData = new ProcessedPbrMaterialData();
+            
+            if (m_CurrentDiffuseGenerationRequest != null)
+            {
+                if (!m_CurrentDiffuseGenerationRequest.isDone)
+                {
+                    m_CurrentDiffuseGenerationRequest?.webRequest?.Abort();
+                    m_CurrentDiffuseGenerationRequest?.webRequest?.Dispose(); 
+                }
+                
+                m_CurrentDiffuseGenerationRequest = null;
+            }
+            
             if (m_CurrentMapGenerationJob != null)
             {
                 m_CurrentMapGenerationJob.Completed -= OnPBRMapRequestCompleted;
                 m_CurrentMapGenerationJob.Cancel();
                 m_CurrentMapGenerationJob = null;
             }
+        }
+
+        public void EvaluateJobsCompleteness()
+        {
+           if(!m_CurrentDiffuseGenerationRequest.isDone || m_CurrentMapGenerationJob.IsRunning)
+               return;
+           
+           PbrDataCache.Write(m_CurrentProcessedData);
+           
+           var newMaterial = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
+
+           MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(m_CurrentProcessedData, newMaterial, false);
+            
+           OnMaterialCreated?.Invoke(newMaterial, m_CurrentProcessedData);
+           CancelCurrentGeneration();
         }
     }
 }

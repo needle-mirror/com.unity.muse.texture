@@ -6,6 +6,7 @@
    * [Manage generated textures](xref:manage-textures)
 * [Refine generated textures](xref:refine)
    * [Refine with masking](xref:refine-with-masking)
+   * [Refine PBR materials](xref:refine-pbr)
    * [Upscale the generated texture](xref:upscale)
    * [Create variations of the generated texture](xref:create-variations)
    * [Set as a reference image](xref:set-as-reference)

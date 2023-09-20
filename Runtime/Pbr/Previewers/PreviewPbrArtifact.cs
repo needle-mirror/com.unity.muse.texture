@@ -21,8 +21,9 @@ namespace Unity.Muse.Texture
 
         Material m_CurrentMaterial;
         ProcessedPbrMaterialData m_CurrentMaterialData;
-        
+
         public GenericLoader.State LoadingState => GenericLoader.LoadingState;
+        public event Action OnDelete;
 
         public PreviewPbrArtifact(List<PbrMaterialData> viewModel, bool autoLoading = true) : base()
         {
@@ -46,7 +47,20 @@ namespace Unity.Muse.Texture
                 }
             };
 
+            GenericLoader.OnDelete += OnDeleteClicked;
+            GenericLoader.OnRetry += OnRetry;
+
             Add(GenericLoader);
+        }
+
+        private void OnRetry()
+        {
+            SetAsset(m_CurrentArtifact);
+        }
+
+        private void OnDeleteClicked()
+        {
+           OnDelete?.Invoke();
         }
 
         public void SetLoadingState(bool enabled)
@@ -66,7 +80,7 @@ namespace Unity.Muse.Texture
             if(artifact is not ImageArtifact imageArtifact) return;
 
             m_CurrentArtifact = imageArtifact;
-            
+
             m_CurrentArtifact.MaterialMetaData ??= new ImageArtifact.MaterialData(true);
 
             SetLoadingState(true);
@@ -93,6 +107,11 @@ namespace Unity.Muse.Texture
         void OnMaterialCreated(Material material, ProcessedPbrMaterialData materialData)
         {
             Dispose();
+            if (material == null)
+            {
+                GenericLoader.SetState(GenericLoader.State.Error, "Failed to generate material");
+                return;
+            }
 
             m_CurrentMaterial = material;
             m_CurrentMaterialData = materialData;
@@ -124,7 +143,8 @@ namespace Unity.Muse.Texture
         {
             var processedPbrMaterialData = PbrDataCache.GetPbrMaterialData(artifact);
             var newMaterial = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
-            MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(processedPbrMaterialData, newMaterial);
+            ObjectUtils.Retain(newMaterial, panel);
+            MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(processedPbrMaterialData, newMaterial, context: panel);
             OnMaterialCreated(newMaterial, processedPbrMaterialData);
         }
     }

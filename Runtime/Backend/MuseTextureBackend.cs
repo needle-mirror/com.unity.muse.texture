@@ -12,6 +12,7 @@ namespace Unity.Muse.Texture
         static readonly string k_GenerateBatchPbrMapURL = $"{k_ServiceBaseURL}/pbr/batch/generate";
         static readonly string k_GenerateImageURL = $"{k_TextToImageServiceBaseURL}/generate";
         static readonly string k_UpscaleGeneratedImageURL = $"{k_TextToImageServiceBaseURL}/upscale_image";
+        static readonly string k_GenerateDiffuse = $"{k_ServiceBaseURL}/pbr_delighting/generate";
 
         /// <summary>
         /// Initiate Text to Texture generation on Cloud. It only allocates texture ids and actual generation occurs in background.
@@ -55,6 +56,31 @@ namespace Unity.Muse.Texture
         }
 
         /// <summary>
+        /// Take an artifact and generate a diffuse map from it.
+        /// </summary>
+        /// <param name="fromImage">base image</param>
+        /// <param name="onDone">guid result</param>
+        /// <returns></returns>
+        public static UnityWebRequestAsyncOperation GenerateDiffuseMap(ImageArtifact fromImage, Action<GuidResponse, string> onDone)
+        {
+            var request = new DiffuseMapRequest(fromImage.Guid, AccessToken);
+            void HandleRequest(object data, string error)
+            {
+                if (onDone == null) return;
+                
+                if (data != null && string.IsNullOrEmpty(error))
+                {
+                    var res = JsonUtility.FromJson<GuidResponse>(Encoding.UTF8.GetString((byte[])data));
+                    onDone(res, error);
+                    return;
+                }
+                onDone(null, error);
+            }
+            
+            return SendJSONRequest(k_GenerateDiffuse, request, HandleRequest);
+        }
+
+        /// <summary>
         /// Takes an image artifact and requests a PBR map to be generated from it. Must have one call made for each map type you wish to extract.
         /// </summary>
         /// <param name="fromImage">The image artifact to send for PBR map extraction. When requesting a normal map, the heightmap must be used and not the source image artifact</param>
@@ -66,6 +92,7 @@ namespace Unity.Muse.Texture
             var backendMapTypeNames = mapTypes.Select(GetMapTypeName).ToArray();
 
             var request = new GenerateBatchPBRMapRequest(fromImage.Guid, backendMapTypeNames, AccessToken);
+            
             void HandleRequest(object data, string error)
             {
                 if (onDone != null)
@@ -79,8 +106,7 @@ namespace Unity.Muse.Texture
                     onDone(null, error);
                 }
             }
-
-
+            
             return SendJSONRequest(k_GenerateBatchPbrMapURL, request, HandleRequest);
         }
 

@@ -8,6 +8,7 @@ namespace Unity.Muse.Texture
 {
     class UIMode : IUIMode
     {
+        public const string modeKey = "TextToImage";
 #if !UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #else
@@ -15,25 +16,17 @@ namespace Unity.Muse.Texture
 #endif
         public static void RegisterUIMode()
         {
-            UIModeFactory.RegisterUIMode<UIMode>("TextToImage");
+            UIModeFactory.RegisterUIMode<UIMode>(modeKey);
         }
 
         Model m_Model;
         public void Activate(MainUI mainUI)
         {
             m_Model = mainUI.model;
-            m_Model.OnSetOperatorDefaults += OnSetOperatorDefault;
         }
 
         public void Deactivate()
         {
-            m_Model.OnSetOperatorDefaults -= OnSetOperatorDefault;
-        }
-
-        IEnumerable<IOperator> OnSetOperatorDefault(IEnumerable<IOperator> currentOperators)
-        {
-            // Remove these operator when going in refinement
-            return currentOperators;
         }
     }
 }

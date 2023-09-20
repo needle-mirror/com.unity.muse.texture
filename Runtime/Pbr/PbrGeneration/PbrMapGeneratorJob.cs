@@ -172,7 +172,6 @@ namespace Unity.Muse.Texture
                 HeightmapPNGData = rawArtifacts[PBRMapTypes.Height]
             };
 
-            PbrDataCache.Write(processedData);
             Completed?.Invoke(allSucceeded, processedData);
 
             Dispose();

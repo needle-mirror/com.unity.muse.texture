@@ -84,7 +84,6 @@ namespace Unity.Muse.Texture
 
             Add(m_GenericLoader);
 
-
             m_MaterialInspectorView = new MaterialInspectorView();
             m_NodesList = evt.destinationPanel.visualTree.Q<NodesList>();
 
@@ -134,7 +133,6 @@ namespace Unity.Muse.Texture
             m_CloseButton.clickable.clicked -= OnCloseButtonClicked;
             m_MaterialInspectorView.hierarchy.Remove(m_CloseButton);
             m_CloseButton = null;
-
 
             if (CurrentModel is not null)
                 CurrentModel.OnActiveToolChanged -= OnActiveToolChanged;
@@ -224,6 +222,12 @@ namespace Unity.Muse.Texture
 
         private void OnPreviewSelected(MaterialPreviewItem obj)
         {
+            if ((obj == MaterialPreviewItem.Artifact && m_TargetVe?.ActivePreviewState != PreviewType.Image) ||
+                (obj != MaterialPreviewItem.Artifact && m_TargetVe?.ActivePreviewState != PreviewType.PBR))
+            {
+                m_TargetVe?.PerformAction((int)Actions.SwitchPreview, new ActionContext(), null);
+            }
+
             UpdateView();
         }
 
@@ -241,7 +245,7 @@ namespace Unity.Muse.Texture
                 return;
             }
 
-            m_GenericLoader.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.Loading
+            m_GenericLoader.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.Loading || m_TargetVe.GetLoadingState() == GenericLoader.State.Error
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
             m_Preview.style.display = m_GenericLoader.style.display == DisplayStyle.Flex
@@ -254,9 +258,6 @@ namespace Unity.Muse.Texture
 
                     tooltip = "Shift + Drag to rotate the model.";
 
-                    m_MaterialPreviewSelector.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
-                        ? DisplayStyle.Flex
-                        : DisplayStyle.None;
                     m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
                         ? DisplayStyle.Flex
                         : DisplayStyle.None;
@@ -274,12 +275,6 @@ namespace Unity.Muse.Texture
                     m_MaterialPreviewSettings.SelectPrimitive(m_TargetVe.PbrPreview.CurrentPreviewType);
                     m_MaterialPreviewSettings.SelectHdri(m_TargetVe.PbrPreview.CurrentHdriEnvironment);
 
-                    if (m_MaterialPreviewSelector.SelectedPreviewItem == MaterialPreviewItem.Artifact)
-                    {
-                        m_MaterialPreviewSelector.SelectItem(MaterialPreviewItem.Material, false);
-                        m_TargetVe.PerformAction((int)Actions.SwitchPreview, new ActionContext(), null);
-                        break;
-                    }
 
                     m_Preview.image = m_MaterialPreviewSelector.SelectedPreviewItem switch
                     {
@@ -290,6 +285,7 @@ namespace Unity.Muse.Texture
                         MaterialPreviewItem.MetallicMap => RenderMap(MuseMaterialProperties.metallicMapKey),
                         MaterialPreviewItem.RoughnessMap => RenderMap(MuseMaterialProperties.roughnessMapKey),
                         MaterialPreviewItem.HeightMap => RenderMap(MuseMaterialProperties.heightMapKey),
+                        MaterialPreviewItem.AOMap => RenderMap(MuseMaterialProperties.ambientOcclusionMapKey),
                         _ => throw new ArgumentOutOfRangeException()
                     };
                     break;
@@ -297,10 +293,13 @@ namespace Unity.Muse.Texture
                 case PreviewType.Image:
                     SetImageView();
                     m_Preview.image = m_TargetVe.ImagePreview;
+                    m_MaterialPreviewSelector.SelectItem(MaterialPreviewItem.Artifact, false);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            CurrentModel.UpdateToolState();
         }
 
         void SetImageView()
@@ -310,7 +309,6 @@ namespace Unity.Muse.Texture
 
             tooltip = string.Empty;
 
-            m_MaterialPreviewSelector.style.display = DisplayStyle.None;
             m_MaterialPreviewSettings.style.display = DisplayStyle.None;
             m_MaterialInspectorView.style.display = DisplayStyle.None;
             m_NodesList.style.display = DisplayStyle.Flex;
@@ -318,7 +316,7 @@ namespace Unity.Muse.Texture
 
         UnityEngine.Texture RenderMap(int propertyId)
         {
-            return m_TargetVe.Material.GetTexture(propertyId);
+            return m_TargetVe.Material != null ? m_TargetVe.Material.GetTexture(propertyId) : null;
         }
 
         private void OnHdriChanged(HdriEnvironment environment)

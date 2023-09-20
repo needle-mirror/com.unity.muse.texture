@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,42 +26,61 @@ namespace Unity.Muse.Texture
         public void SetModel(Model model)
         {
             m_CurrentModel = model;
+
             model.OnSetMaskSeamless -= OnSetMaskSeamless;
             model.OnActiveToolChanged -= OnActiveToolChanged;
+            model.OnOperatorUpdated -= Refresh;
+
             model.OnSetMaskSeamless += OnSetMaskSeamless;
             model.OnActiveToolChanged += OnActiveToolChanged;
+            model.OnOperatorUpdated += Refresh;
+        }
+
+        void Refresh(IEnumerable<IOperator> operators, bool set)
+        {
+            if (!m_CurrentModel.isRefineMode)
+                return;
+            if (m_CurrentManipulator is null)
+                return;
+            if (set)
+                return;
+
+            m_CurrentManipulator.RefreshMask();
         }
 
         void OnActiveToolChanged(ICanvasTool obj)
         {
-            // Clear reference image when going to in-painting mask as they are currently exclusive
             if (obj is not null)
-                m_CurrentModel.RemoveOperators(m_CurrentModel.CurrentOperators.GetOperator<ReferenceOperator>() ?? new());
-            else
-            {
-                // Clear in-painting mask when setting a new reference image as they are currently exclusive
-                if (m_CurrentModel.CurrentOperators.GetOperator<ReferenceOperator>() is not null)
-                {
-                    m_CurrentModel.CurrentOperators.GetOperator<MaskOperator>()?.Enable(false);
-                    m_CurrentModel.UpdateOperators();
-                }
-            }
+                // Disable reference image when going to in-painting mask as they are currently exclusive
+                m_CurrentModel.SetOperatorEnable<ReferenceOperator>(false);
+            else if (m_CurrentModel.CurrentOperators.GetOperator<ReferenceOperator>() is not null)
+                // Disable in-painting mask when setting a new reference image as they are currently exclusive
+                m_CurrentModel.SetOperatorEnable<MaskOperator>(false);
+
+            // Disable in-painting mask when going out of paint mode
+            if (obj is null)
+                m_CurrentModel.SetOperatorEnable<MaskOperator>(false);
         }
 
         public bool EvaluateEnableState(Artifact artifact)
         {
-            return m_CurrentModel.isRefineMode && (m_CurrentModel.CurrentOperators?.Any(x => x is MaskOperator) ?? false);
+            if (artifact is ImageArtifact imageArtifact)
+            {
+                return m_CurrentModel.isRefineMode && !imageArtifact.IsPbrMode;
+            }
+            return m_CurrentModel.isRefineMode;
         }
 
         public void ActivateOperators()
         {
             if(m_CurrentModel == null) return;
 
-            var opMask = m_CurrentModel.CurrentOperators.Find(x => x.GetType() == typeof(MaskOperator));
+            var opMask = m_CurrentModel.CurrentOperators.Find(x => x.GetType() == typeof(MaskOperator)) ??
+                m_CurrentModel.AddOperator<MaskOperator>();
+
             if (opMask != null && !opMask.Enabled())
             {
                 opMask.Enable(true);
-                //Probably need to do an event refresh nodes list
                 m_CurrentModel.UpdateOperators(opMask);
             }
         }
@@ -80,7 +98,7 @@ namespace Unity.Muse.Texture
 
         public VisualElement GetSettings()
         {
-            return m_CurrentManipulator?.m_PaintingManipulatorSettings.GetSettings();
+            return m_CurrentManipulator?.paintingManipulatorSettings.GetSettings();
         }
 
         public Texture2D Export()
@@ -91,7 +109,7 @@ namespace Unity.Muse.Texture
         class PaintCanvasToolManipulator : CanvasManipulator
         {
             PaintingManipulator m_PaintingManipulator;
-            public PaintingManipulatorSettings m_PaintingManipulatorSettings;
+            internal PaintingManipulatorSettings paintingManipulatorSettings;
             bool Seamless { get; set; }
 
             public PaintCanvasToolManipulator(Model model, bool seamless)
@@ -118,9 +136,10 @@ namespace Unity.Muse.Texture
                 }
 
                 m_PaintingManipulator = new PaintingManipulator(Seamless, true);
-                m_PaintingManipulatorSettings = new PaintingManipulatorSettings(m_PaintingManipulator);
+                paintingManipulatorSettings = new PaintingManipulatorSettings(m_PaintingManipulator);
                 m_PaintingManipulator.SetModel(m_CurrentModel);
                 node.PaintSurfaceElement.AddManipulator(m_PaintingManipulator);
+                RefreshMask();
             }
 
             protected override void UnregisterCallbacksFromTarget()
@@ -132,6 +151,15 @@ namespace Unity.Muse.Texture
             {
                 return m_PaintingManipulator?.GetTexture();
             }
+
+            public void RefreshMask()
+            {
+                var maskOperator = m_CurrentModel.CurrentOperators.GetOperator<MaskOperator>();
+                if (maskOperator is null)
+                    return;
+                m_PaintingManipulator.paintingElement?.SetMaskTexture(maskOperator.GetMask());
+            }
         }
     }
 }
+

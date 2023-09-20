@@ -10,7 +10,7 @@ namespace Unity.Muse.Texture.Tools
 #endif
         public static void RegisterAvailableTools()
         {
-            AvailableToolsFactory.RegisterTool<PaintCanvasTool>();
+            AvailableToolsFactory.RegisterTool<PaintCanvasTool>(UIMode.modeKey);
         }
     }
 }

@@ -22,6 +22,10 @@ namespace Unity.Muse.Texture
         private ActionButton m_ActionButton;
         private VisualElement m_ButtonContainer;
         readonly ActionButton m_BookmarkButton;
+        
+        protected bool m_IsError =>
+            m_PreviewImage?.LoadingState == GenericLoader.State.Error ||
+            m_PreviewPbr?.GenericLoader.LoadingState == GenericLoader.State.Error;
 
         public PreviewType ActivePreviewState => m_ActivePreviewState;
         public UnityEngine.Texture ImagePreview => m_PreviewImage.image;
@@ -52,7 +56,7 @@ namespace Unity.Muse.Texture
             m_ButtonContainer = new VisualElement();
             m_ButtonContainer.AddToClassList("muse-asset-image__control-buttons-container");
 
-            m_EditButton = new ActionButton { name="refine", icon = "pen", tooltip = "Refine image" };
+            m_EditButton = new ActionButton { name="refine", icon = "pen", tooltip = TextContent.refineTooltip };
             m_EditButton.AddToClassList("refine-button");
             m_EditButton.AddToClassList("refine-button-item");
             m_EditButton.clicked += OnRefineClicked;
@@ -162,7 +166,7 @@ namespace Unity.Muse.Texture
 
         public override void UpdateView()
         {
-            m_ButtonContainer.style.display = canRefineBookmark ? DisplayStyle.Flex : DisplayStyle.None;
+            m_ButtonContainer.style.display =  canRefineBookmark && !m_IsError ? DisplayStyle.Flex : DisplayStyle.None;
             m_ButtonContainer.visible = canRefineBookmark;
             m_EditButton.SetEnabled(m_PreviewImage.image != null);
             m_ActionButton.visible = canRefine;

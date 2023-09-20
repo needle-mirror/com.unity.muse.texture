@@ -15,6 +15,7 @@ To rotate the sphere, hold <kbd>Shift</kbd> **+** click and drag.
 
 ## Additional resources
 
+* [Refine PBR materials](xref:refine-pbr)
 * [Write a prompt](xref:write-prompt)
 * [Manage generated textures](xref:manage-textures)
 * [Tool reference](xref:tool-reference)

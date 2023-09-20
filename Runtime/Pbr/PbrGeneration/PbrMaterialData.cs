@@ -1,4 +1,5 @@
 using System;
+using Unity.Muse.Common;
 using UnityEngine;
 
 namespace Unity.Muse.Texture
@@ -16,6 +17,8 @@ namespace Unity.Muse.Texture
         public ImageArtifact RoughnessMapSourceArtifact;
         [SerializeField]
         public ImageArtifact HeightmapSourceArtifact;
+        [SerializeField]
+        public ImageArtifact DiffuseMapSourceArtifact;
 
         public PbrMaterialData(){}
         public PbrMaterialData(ProcessedPbrMaterialData processedData)
@@ -40,11 +43,16 @@ namespace Unity.Muse.Texture
                                                                                             RoughnessMap = null,
                                                                                             RoughnessMapPNGData = null,
                                                                                             HeightmapMap = null,
-                                                                                            HeightmapPNGData = null
+                                                                                            HeightmapPNGData = null,
+                                                                                            AOMapPNGData = null,
+                                                                                            DiffuseMap = null,
+                                                                                            DiffuseMapPNGData = null
                                                                                         };
 
         public ImageArtifact BaseMap;
         public byte[] BaseMapPNGData;
+        public ImageArtifact DiffuseMap;
+        public byte[] DiffuseMapPNGData;
         public ImageArtifact NormalMap;
         public byte[] NormalMapPNGData;
         public ImageArtifact MetallicMap;
@@ -53,5 +61,25 @@ namespace Unity.Muse.Texture
         public byte[] RoughnessMapPNGData;
         public ImageArtifact HeightmapMap;
         public byte[] HeightmapPNGData;
+
+        public byte[] AOMapPNGData
+        {
+            get
+            {
+                if (HeightmapPNGData == null)
+                    return null;
+
+                if (m_AOMapPNGData != null) return m_AOMapPNGData;
+                
+                var texture = MaterialGeneratorUtils.GenerateAOMap(HeightmapPNGData);
+                m_AOMapPNGData = texture.EncodeToPNG();
+                texture.SafeDestroy();
+
+                return m_AOMapPNGData;
+            }
+            set => m_AOMapPNGData = value;
+        }
+
+        private byte[] m_AOMapPNGData;
     }
 }

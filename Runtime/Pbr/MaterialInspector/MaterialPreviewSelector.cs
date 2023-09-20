@@ -19,8 +19,12 @@ namespace Unity.Muse.Texture
         private IconButton m_HeightMapPreviewButton;
         private IconButton m_MetallicMapPreviewButton;
         private IconButton m_RoughnessMapPreviewButton;
+        private IconButton m_AOMapPreviewButton;
 
         private Material m_Material;
+        
+        private const string k_SelectedClassName = "muse-material-inspector-preview--selected";
+        private const string k_MainButtonSelectedClassName = "muse-material-inspector-preview-main--selected";
 
         private const string k_MapImageElementName = "map-image";
         
@@ -89,6 +93,12 @@ namespace Unity.Muse.Texture
                 name = "RoughnessMap",
                 tooltip = "Roughness map preview"
             });
+            
+            Add(new IconButton()
+            {
+                name = "AOMap",
+                tooltip = "Ambient Occlusion map preview"
+            });
         }
 
         private void OnAttachToPanel(AttachToPanelEvent evt)
@@ -101,6 +111,7 @@ namespace Unity.Muse.Texture
             m_HeightMapPreviewButton = this.Q<IconButton>("HeightMap");
             m_MetallicMapPreviewButton = this.Q<IconButton>("MetallicMap");
             m_RoughnessMapPreviewButton = this.Q<IconButton>("RoughnessMap");
+            m_AOMapPreviewButton = this.Q<IconButton>("AOMap");
 
             m_ArtifactPreviewButton.clickable.clicked += OnArtifactPreviewClicked;
             m_MaterialPreviewButton.clickable.clicked += OnMaterialPreviewClicked;
@@ -108,8 +119,10 @@ namespace Unity.Muse.Texture
             m_HeightMapPreviewButton.clickable.clicked += OnHeightPreviewClicked;
             m_MetallicMapPreviewButton.clickable.clicked += OnMetallicPreviewClicked;
             m_RoughnessMapPreviewButton.clickable.clicked += OnRoughnessPreviewClicked;
+            m_AOMapPreviewButton.clickable.clicked += OnAOPreviewClicked;
 
             InitializeIcons();
+            UpdateSelectedState(SelectedPreviewItem);
         }
 
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
@@ -122,18 +135,21 @@ namespace Unity.Muse.Texture
             m_HeightMapPreviewButton.clickable.clicked -= OnHeightPreviewClicked;
             m_MetallicMapPreviewButton.clickable.clicked -= OnMetallicPreviewClicked;
             m_RoughnessMapPreviewButton.clickable.clicked -= OnRoughnessPreviewClicked;
-
+            m_AOMapPreviewButton.clickable.clicked += OnAOPreviewClicked;
+            
             m_ArtifactPreviewButton = null;
             m_MaterialPreviewButton = null;
             m_DiffuseMapPreviewButton = null;
             m_HeightMapPreviewButton = null;
             m_MetallicMapPreviewButton = null;
             m_RoughnessMapPreviewButton = null;
+            m_AOMapPreviewButton = null;
         }
 
         public void SelectItem(MaterialPreviewItem selectedItem, bool notify = true)
         {
             SelectedPreviewItem = selectedItem;
+            UpdateSelectedState(selectedItem);
             
             if(notify)
                 OnPreviewSelected?.Invoke(SelectedPreviewItem);
@@ -151,12 +167,21 @@ namespace Unity.Muse.Texture
             InitializeIcon(m_HeightMapPreviewButton, MuseMaterialProperties.heightMapKey);
             InitializeIcon(m_MetallicMapPreviewButton, MuseMaterialProperties.metallicMapKey);
             InitializeIcon(m_RoughnessMapPreviewButton, MuseMaterialProperties.roughnessMapKey);
+            InitializeIcon(m_AOMapPreviewButton, MuseMaterialProperties.ambientOcclusionMapKey);
         }
 
         void InitializeIcon(IconButton button, int mapId)
         {
-            if (m_Material == null || button == null)
+            if (button == null)
                 return;
+
+            if (m_Material == null)
+            {
+                button.style.display = DisplayStyle.None;
+                return;
+            }
+            
+            button.style.display = DisplayStyle.Flex;
             
             button.style.overflow = Overflow.Hidden;
             
@@ -200,6 +225,22 @@ namespace Unity.Muse.Texture
         private void OnRoughnessPreviewClicked()
         {
             SelectItem(MaterialPreviewItem.RoughnessMap);
+        }
+        
+        private void OnAOPreviewClicked()
+        {
+             SelectItem(MaterialPreviewItem.AOMap);
+        }
+        
+        void UpdateSelectedState(MaterialPreviewItem selectedItem)
+        {
+            m_MaterialPreviewButton.EnableInClassList(k_MainButtonSelectedClassName, selectedItem == MaterialPreviewItem.Material);
+            m_ArtifactPreviewButton.EnableInClassList(k_MainButtonSelectedClassName, selectedItem == MaterialPreviewItem.Artifact);
+            m_DiffuseMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.BaseMap); 
+            m_HeightMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.HeightMap);
+            m_MetallicMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.MetallicMap);
+            m_RoughnessMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.RoughnessMap);
+            m_AOMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.AOMap);
         }
     }
 }

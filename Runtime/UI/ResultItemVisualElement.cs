@@ -31,11 +31,21 @@ namespace Unity.Muse.Texture
 
             m_PreviewImage.GenericLoader.OnLoadingStateChanged += LoadingStateChanged;
             m_PreviewPbr.GenericLoader.OnLoadingStateChanged += LoadingStateChanged;
+            m_PreviewImage.OnDelete += OnDelete;
+            m_PreviewPbr.OnDelete += OnDelete;
 
 
             if (artifact is ImageArtifact imageArtifact)
+            {
                 SetCurrentState(imageArtifact.IsPbrMode ? PreviewType.PBR : PreviewType.Image);
+            }
         }
+
+        private void OnDelete()
+        {
+            PerformAction((int)Actions.Delete, new ActionContext(), null); 
+        }
+
 
         void LoadingStateChanged(GenericLoader.State state)
         {
@@ -56,6 +66,11 @@ namespace Unity.Muse.Texture
         public override IEnumerable<ContextMenuAction> GetAvailableActions(ActionContext context)
         {
             var actions = new List<ContextMenuAction>();
+            if (m_IsError)
+            {
+                return actions;
+            }
+            
             var isUpscale = Artifact.GetOperators().Find(x => x is UpscaleOperator upscaleOperator && upscaleOperator.Enabled()) != null;
 
             if (CurrentModel.isRefineMode)
@@ -64,7 +79,7 @@ namespace Unity.Muse.Texture
                 {
                     id = (int)Actions.SetAsThumbnail,
                     label = "Set as Thumbnail",
-                    enabled = !context.isMultiSelect
+                    enabled = !context.isMultiSelect && !CurrentModel.IsThumbnail(Artifact)
                 });
 
                 actions.Add(new ContextMenuAction
@@ -119,6 +134,16 @@ namespace Unity.Muse.Texture
                 _ => false
             };
 
+            actions.Add(new ContextMenuAction
+            {
+                // Context menu Delete is available even if the generation is not ready yet, it's to have the option
+                // to delete the item when there is an error with the generation, otherwise, delete was only
+                // available with the keyboard shortcut
+                enabled = true,
+                id = (int)Actions.Delete,
+                label = context.isMultiSelect ? TextContent.deleteMultiple : TextContent.deleteSingle
+            });
+
             if (Artifact is Artifact<Texture2D> && exportAvailable)
             {
                 actions.Add(new ContextMenuAction
@@ -127,12 +152,7 @@ namespace Unity.Muse.Texture
                     id = (int)Actions.Save,
                     label = context.isMultiSelect ? TextContent.exportMultiple : TextContent.exportSingle
                 });
-                actions.Add(new ContextMenuAction
-                {
-                    enabled = true,
-                    id = (int)Actions.Delete,
-                    label = context.isMultiSelect ? TextContent.deleteMultiple : TextContent.deleteSingle
-                });
+
                 if (context.isMultiSelect)
                 {
                     actions.Add(new ContextMenuAction

@@ -51,7 +51,8 @@ namespace Unity.Muse.Texture.Pbr.Cache
                 NormalMap = new ImageArtifact(data.NormalGuid, uint.MinValue),
                 MetallicMap = new ImageArtifact(data.MetallicGuid, uint.MinValue),
                 RoughnessMap = new ImageArtifact(data.RoughnessGuid, uint.MinValue),
-                HeightmapMap = new ImageArtifact(data.HeightGuid, uint.MinValue)
+                HeightmapMap = new ImageArtifact(data.HeightGuid, uint.MinValue),
+                DiffuseMap = new ImageArtifact(data.DiffuseGuid, uint.MinValue),
             };
 
             processedPbrData.BaseMapPNGData = ArtifactCache.ReadRawData(processedPbrData.BaseMap);
@@ -59,6 +60,7 @@ namespace Unity.Muse.Texture.Pbr.Cache
             processedPbrData.MetallicMapPNGData = ArtifactCache.ReadRawData(processedPbrData.MetallicMap);
             processedPbrData.RoughnessMapPNGData = ArtifactCache.ReadRawData(processedPbrData.RoughnessMap);
             processedPbrData.HeightmapPNGData = ArtifactCache.ReadRawData(processedPbrData.HeightmapMap);
+            processedPbrData.DiffuseMapPNGData = ArtifactCache.ReadRawData(processedPbrData.DiffuseMap);
 
             return processedPbrData;
         }

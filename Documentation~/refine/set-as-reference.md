@@ -7,7 +7,7 @@ uid: set-as-reference
 You can set a generated texture as a reference image to generate new textures guided by the color and shape of the reference image. Unlike [creating variations](xref:create-variations), this approach allows you to specify a prompt for the refinement.
 
 1. Right-click the generated texture and select **Set as Reference**. The selected texture appears in the **Reference Image** panel.
-1. Enter a prompt to refine the texture.
+1. Enter a prompt to describe the texture you want to generate.
 1. Select **Generate**.
 
 ## Additional resources
