@@ -117,6 +117,7 @@ Shader "Muse/AO"
                 //int index = ((g_iHeight-1)-iPixLoc.y)*g_iWidth + iPixLoc.x;
                 //float fval = texelFetch(g_HeightsBuffer, index).x;
 
+                float adjustedDispScale = _DispScale * _MainTex_TexelSize.z / 512.0;
                 float fXcen = i.vertex.x;
                 float fYcen = i.vertex.y;
                 int iW = _MainTex_TexelSize.z;
@@ -130,7 +131,7 @@ Shader "Muse/AO"
                     for (int i = 0; i < 3; i++)
                     {
                         //float fH = Sample(mip_loc, pfHeights, iW, iH, (fXcen+i-1)/iW, (fYcen+j-1)/iH, 0.0);
-                        float fH = _DispScale * tex2Dlod(
+                        float fH = adjustedDispScale * tex2Dlod(
                             _MainTex, float4((fXcen + i - 1) / iW, (fYcen + j - 1) / iH, 0.0, 0.0)).x;
 
                         int iWeightU = (i - 1) * ((j & 1) + 1);
@@ -202,7 +203,7 @@ Shader "Muse/AO"
                         fY0 = vCres.y;
 
                         //float fHeight0 = Sample(mip_loc, pfHeights, iW, iH, (fX0/iW), (fY0/iH), 0.0);
-                        float fHeight0 = _DispScale * tex2Dlod(_MainTex, float4(fX0 / iW, fY0 / iH, 0.0, 0.0)).x;
+                        float fHeight0 = adjustedDispScale * tex2Dlod(_MainTex, float4(fX0 / iW, fY0 / iH, 0.0, 0.0)).x;
                         float3 vPcur = float3(fX0, fY0, fHeight0);
 
 
@@ -258,7 +259,7 @@ Shader "Muse/AO"
                         float fLod = 0.5 * log2(fArea);
 
                         //float fHeight0 = SampleTri(mip_loc, pfHeights, iW, iH, fX0/iW, fY0/iH, fLod);
-                        float fHeight0 = _DispScale * tex2Dlod(_MainTex, float4(fX0 / iW, fY0 / iH, 0.0, fLod)).x;
+                        float fHeight0 = adjustedDispScale * tex2Dlod(_MainTex, float4(fX0 / iW, fY0 / iH, 0.0, fLod)).x;
                         float3 vPcur = float3(fX0, fY0, fHeight0);
 
 

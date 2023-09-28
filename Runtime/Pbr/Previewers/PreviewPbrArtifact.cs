@@ -81,7 +81,10 @@ namespace Unity.Muse.Texture
 
             m_CurrentArtifact = imageArtifact;
 
-            m_CurrentArtifact.MaterialMetaData ??= new ImageArtifact.MaterialData(true);
+            if (m_CurrentArtifact.MaterialMetaData is not { Initialized: true })
+            {
+                m_CurrentArtifact.MaterialMetaData = new ImageArtifact.MaterialData(true);
+            }
 
             SetLoadingState(true);
             if (PbrDataCache.IsInCache(artifact))
@@ -112,6 +115,8 @@ namespace Unity.Muse.Texture
                 GenericLoader.SetState(GenericLoader.State.Error, "Failed to generate material");
                 return;
             }
+            
+            m_CurrentArtifact.MaterialMetaData.ApplyToMaterial(material); 
 
             m_CurrentMaterial = material;
             m_CurrentMaterialData = materialData;

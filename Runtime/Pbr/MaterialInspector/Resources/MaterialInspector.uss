@@ -8,13 +8,16 @@
 }
 
 .muse-material-inspector--view {
-    max-width: 288px;
-    min-width: 280px;
+    width: 288px;
     padding: 8px 4px 8px 8px;
 }
 
-.unity-scroll-view__content-container {
+.muse-material-inspector--view > .unity-scroll-view__content-and-vertical-scroll-container {
+    width: 288px;
+}
 
+.muse-material-inspector--view > .unity-scroll-view__content-and-vertical-scroll-container > * > .unity-scroll-view__content-container {
+    width: 276px;
 }
 
 .muse-material--preview-list > * > * > .unity-scroll-view__content-container {
@@ -143,10 +146,10 @@ IconButton {
     color: var(--appui-foregrounds-200);
 }
 .appui-text, .appui-slider__label, .appui-slider__valuelabel{
-    font-size: var(--appui-font-sizes-100); 
+    font-size: var(--appui-font-sizes-125); 
 }
 
-.muse-inspector__title, .muse-label--component{
+.muse-inspector__title, .muse-label--component, .appui-touchslider{
     margin-bottom: var(--appui-spacing-125);
     padding: 0;
 }

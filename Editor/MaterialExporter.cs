@@ -123,7 +123,10 @@ namespace Unity.Muse.Texture.Editor
         {
             if (baseArtifact is not ImageArtifact imageArtifact) return;
 
-            imageArtifact.MaterialMetaData ??= new ImageArtifact.MaterialData(true);
+            if (imageArtifact.MaterialMetaData is not { Initialized: true })
+            {
+                imageArtifact.MaterialMetaData = new ImageArtifact.MaterialData(true);
+            }
             material.SetFloat(MuseMaterialProperties.heightIntensity, imageArtifact.MaterialMetaData.height);
             material.SetFloat(MuseMaterialProperties.metallicIntensity, imageArtifact.MaterialMetaData.metallic);
             material.SetFloat(MuseMaterialProperties.roughnessIntensity, imageArtifact.MaterialMetaData.roughness);

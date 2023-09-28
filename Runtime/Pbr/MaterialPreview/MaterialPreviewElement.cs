@@ -20,11 +20,10 @@ namespace Unity.Muse.Texture
         public new class UxmlFactory : UxmlFactory<MaterialPreviewElement, UxmlTraits> { }
 
         protected internal bool m_PreviewEnabled = true;
-        protected internal bool m_ModifierRotation = true;
 
         public MaterialPreviewElement()
         {
-            RotationManipulator ??= new RotationManipulator(m_ModifierRotation);
+            RotationManipulator ??= new RotationManipulator();
             RegisterCallback<AttachToPanelEvent>(OnAttach);
             RegisterCallback<DetachFromPanelEvent>(OnDetach);
 

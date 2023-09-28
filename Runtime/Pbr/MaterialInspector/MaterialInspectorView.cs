@@ -24,10 +24,11 @@ namespace Unity.Muse.Texture
         private FloatField m_RotationField;
         private Toggle m_FlipVerticalField;
         private Toggle m_FlipHorizontalField;
+        private Toggle m_UseDisplacement;
 
-        private SliderFloat m_HeightIntensityField;
-        private SliderFloat m_MetallicIntensityField;
-        private SliderFloat m_RoughnessIntensityField;
+        private TouchSliderFloat m_HeightIntensityField;
+        private TouchSliderFloat m_MetallicIntensityField;
+        private TouchSliderFloat m_RoughnessIntensityField;
         
         public event Action OnMaterialPropertiesChanged;
 
@@ -81,7 +82,7 @@ namespace Unity.Muse.Texture
             tilingContainer.Add(new Vector2Field()
             {
                 name = "TilingField",
-                size = Size.S
+                size = Size.M
             }); 
             
             var offsetContainer = new ExVisualElement()
@@ -99,7 +100,7 @@ namespace Unity.Muse.Texture
             offsetContainer.Add(new Vector2Field()
             {
                name = "OffsetField",
-               size = Size.S
+               size = Size.M
             });
             
             var rotationContainer = new ExVisualElement()
@@ -117,9 +118,10 @@ namespace Unity.Muse.Texture
             rotationContainer.Add(new FloatField()
             {
                 name = "RotationField",
-                size = Size.S
+                size = Size.M,
+                unit = "DEG"
             });
-            
+
             var verticalFlipContainer = new ExVisualElement()
             {
                 tooltip = "Flip the maps vertically"
@@ -153,6 +155,23 @@ namespace Unity.Muse.Texture
             {
                 name = "HorizontalFlipField"
             });
+            
+            var useDisplacementContainer = new ExVisualElement()
+            {
+                tooltip = "Use displacement"
+            };
+            useDisplacementContainer.AddToClassList("muse-label--component-toggle");
+            editSection.Add(useDisplacementContainer);
+            
+            useDisplacementContainer.Add(new Text()
+            {
+                text = "Use Displacement"
+            });
+            
+            useDisplacementContainer.Add(new Toggle()
+            {
+                name = "UseDisplacementField"
+            });
         }
         
         private void GenerateMapsSection()
@@ -170,7 +189,7 @@ namespace Unity.Muse.Texture
             
             mapsSection.Add(mapsTitle);
             
-            mapsSection.Add(new SliderFloat()
+            mapsSection.Add(new FactorSliderFloat()
             {
                 name = "HeightIntensityField",
                 label = "Height",
@@ -178,10 +197,10 @@ namespace Unity.Muse.Texture
                 lowValue = -20f,
                 highValue = 20f,
                 value = 0f,
-                filled = true
+                size = Size.M
             });
             
-            mapsSection.Add(new SliderFloat()
+            mapsSection.Add(new FactorSliderFloat()
             {
                 name = "MetallicIntensityField",
                 label = "Metallic",
@@ -189,18 +208,18 @@ namespace Unity.Muse.Texture
                 lowValue = 0f,
                 highValue = 20f,
                 value = 1f,
-                filled = true
+                size = Size.M
             });
             
-            mapsSection.Add(new SliderFloat()
+            mapsSection.Add(new FactorSliderFloat()
             {
                 name = "RoughnessIntensityField",
                 label = "Roughness",
                 tooltip = "Roughness intensity",
                 lowValue = 0f,
-                highValue = 20f,
+                highValue = 3f,
                 value = 1f,
-                filled = true
+                size = Size.M
             });
         }
 
@@ -213,9 +232,10 @@ namespace Unity.Muse.Texture
             m_RotationField = this.Q<FloatField>("RotationField");
             m_FlipVerticalField = this.Q<Toggle>("VerticalFlipField");
             m_FlipHorizontalField = this.Q<Toggle>("HorizontalFlipField");
-            m_HeightIntensityField = this.Q<SliderFloat>("HeightIntensityField");
-            m_MetallicIntensityField = this.Q<SliderFloat>("MetallicIntensityField");
-            m_RoughnessIntensityField = this.Q<SliderFloat>("RoughnessIntensityField");
+            m_UseDisplacement = this.Q<Toggle>("UseDisplacementField");
+            m_HeightIntensityField = this.Q<TouchSliderFloat>("HeightIntensityField");
+            m_MetallicIntensityField = this.Q<TouchSliderFloat>("MetallicIntensityField");
+            m_RoughnessIntensityField = this.Q<TouchSliderFloat>("RoughnessIntensityField");
             
             InitializePropertiesValues();
             RegisterPropertyChangeCallbacks();
@@ -231,6 +251,7 @@ namespace Unity.Muse.Texture
             m_RotationField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.rotationKey));
             m_FlipVerticalField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.flipVertical) > 0.0);
             m_FlipHorizontalField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.flipHorizontal) > 0.0);
+            m_UseDisplacement.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.useDisplacement) > 0.0);
             m_HeightIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.heightIntensity));
             m_MetallicIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.metallicIntensity));
             m_RoughnessIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.roughnessIntensity));
@@ -247,6 +268,7 @@ namespace Unity.Muse.Texture
             m_RotationField = null; 
             m_FlipVerticalField = null; 
             m_FlipHorizontalField = null; 
+            m_UseDisplacement = null;
             m_HeightIntensityField = null; 
             m_MetallicIntensityField = null; 
             m_RoughnessIntensityField = null; 
@@ -259,9 +281,13 @@ namespace Unity.Muse.Texture
             m_RotationField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_FlipVerticalField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_FlipHorizontalField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
+            m_UseDisplacement.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_HeightIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
+            m_HeightIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_MetallicIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
+            m_MetallicIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_RoughnessIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
+            m_RoughnessIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
         }
 
         private void UnRegisterPropertyChangeCallbacks()
@@ -271,6 +297,7 @@ namespace Unity.Muse.Texture
             m_RotationField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_FlipVerticalField.UnregisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_FlipHorizontalField.UnregisterValueChangedCallback(evt => MaterialPropertiesChanged());
+            m_UseDisplacement.UnregisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_HeightIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_MetallicIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_RoughnessIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
@@ -286,6 +313,7 @@ namespace Unity.Muse.Texture
             m_Material.SetFloat(MuseMaterialProperties.rotationKey, m_RotationField.value);
             m_Material.SetFloat(MuseMaterialProperties.flipVertical, m_FlipVerticalField.value ? 1.0f : 0.0f);
             m_Material.SetFloat(MuseMaterialProperties.flipHorizontal, m_FlipHorizontalField.value ? 1.0f : 0.0f);
+            m_Material.SetFloat(MuseMaterialProperties.useDisplacement, m_UseDisplacement.value ? 1.0f : 0.0f);
             m_Material.SetFloat(MuseMaterialProperties.heightIntensity, m_HeightIntensityField.value);
             m_Material.SetFloat(MuseMaterialProperties.metallicIntensity, m_MetallicIntensityField.value);
             m_Material.SetFloat(MuseMaterialProperties.roughnessIntensity, m_RoughnessIntensityField.value);

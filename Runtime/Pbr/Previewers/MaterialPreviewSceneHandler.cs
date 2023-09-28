@@ -21,8 +21,11 @@ namespace Unity.Muse.Texture
         GameObject m_Target;
         PrimitiveObjectTypes? m_CurrentPreviewType = null;
         HdriEnvironment? m_CurrentHdriEnvironment = null;
+        RenderSettingsData m_RenderSettingsData = new RenderSettingsData();
 #if HDRP_PIPELINE_ENABLED
         HDAdditionalReflectionData m_ReflectionProbeAdditionalData;
+        VolumeProfile m_VolumeProfile;
+        HDRISky m_HdriSky;
 #endif
 
         public Scene Scene => m_Scene;
@@ -42,7 +45,6 @@ namespace Unity.Muse.Texture
         {
             InitializeCamera();
             InitializeLights();
-            InitializeReflectionProbe();
             InitializePrimitiveTarget();
         }
 
@@ -51,6 +53,8 @@ namespace Unity.Muse.Texture
 #if HDRP_PIPELINE_ENABLED
             var previewCamera = GameObject.Instantiate(Resources.Load<GameObject>("HDRP/Preview Scene Camera"));
             previewCamera.hideFlags = HideFlags.DontSave;
+            m_VolumeProfile = previewCamera.GetComponentInChildren<Volume>().profile;
+            m_HdriSky = m_VolumeProfile.components.Find(x => x is HDRISky) as HDRISky; 
 #else
             var previewCamera = new GameObject("Preview Scene Camera", typeof(Camera))
             {
@@ -105,7 +109,7 @@ namespace Unity.Muse.Texture
             m_Lights[0].transform.rotation = Quaternion.Euler(50f, -30f, 0.0f);
             m_Lights[0].transform.position = new Vector3(0.0f, 3.0f, 0.0f);
             m_Lights[0].color = Color.white;
-            m_Lights[0].enabled = true;
+            m_Lights[0].enabled = false;
 
             m_Lights[1].transform.rotation = Quaternion.Euler(340f, 218f, 177f);
             m_Lights[1].color = new Color(0.4f, 0.4f, 0.45f, 0.0f) * 0.7f;
@@ -140,19 +144,34 @@ namespace Unity.Muse.Texture
 
         internal void InitializeReflectionProbe(HdriEnvironment environment = HdriEnvironment.Default)
         {
-            if(m_CurrentHdriEnvironment == environment)
-                return;
-            
             m_CurrentHdriEnvironment = environment;
-
             var reflectionCubemap = HdriProvider.GetHdri(m_CurrentHdriEnvironment.Value); 
+            
+#if !HDRP_PIPELINE_ENABLED
+            m_RenderSettingsData.skybox = new Material(Shader.Find("Skybox/Cubemap"))
+            {
+                hideFlags = HideFlags.DontSave
+            };
+            m_RenderSettingsData.ambientMode = AmbientMode.Skybox;
+            m_RenderSettingsData.ambientIntensity = 1.5f;
+            m_RenderSettingsData.ambientSkyColor = Color.white;
+            m_RenderSettingsData.ambientGroundColor = Color.white;
+            m_RenderSettingsData.ambientEquatorColor = Color.white;
 
+            m_RenderSettingsData.skybox.SetTexture("_Tex", reflectionCubemap);
+            m_RenderSettingsData.defaultReflectionMode = DefaultReflectionMode.Custom;
+            m_RenderSettingsData.reflectionBounces = 0;
+            m_RenderSettingsData.reflectionIntensity = 0f;
+            
+#endif
+            
             if (m_ReflectionProbe == null)
             {
                 var reflectionGo = new GameObject();
                 m_ReflectionProbe = reflectionGo.AddComponent<ReflectionProbe>();
-                m_ReflectionProbe.intensity = .6f;
+                m_ReflectionProbe.intensity = 1f;
                 m_ReflectionProbe.mode = ReflectionProbeMode.Custom;
+                
                 m_ReflectionProbe.clearFlags = ReflectionProbeClearFlags.SolidColor;
                 m_ReflectionProbe.importance = 1;
                 m_ReflectionProbe.size = new Vector3(100f, 100f, 100f);
@@ -162,14 +181,20 @@ namespace Unity.Muse.Texture
 
                 AddGameObject(reflectionGo); 
             }
+#if !HDRP_PIPELINE_ENABLED
+            m_RenderSettingsData.ApplyCurrentSettings();
+            DynamicGI.UpdateEnvironment();
+#endif
 
             m_ReflectionProbe.customBakedTexture = reflectionCubemap;
+            
 #if HDRP_PIPELINE_ENABLED
+            m_HdriSky.hdriSky.Override(reflectionCubemap);
             m_ReflectionProbeAdditionalData.customTexture = reflectionCubemap;
             m_ReflectionProbeAdditionalData.RequestRenderNextUpdate();
 #endif
         }
-
+        
         public void InitializePrimitiveTarget(PrimitiveObjectTypes primitiveObject = PrimitiveObjectTypes.Sphere)
         {
             if(m_CurrentPreviewType == primitiveObject)

@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
@@ -29,22 +30,27 @@ namespace Unity.Muse.Texture
 
         private void OnMouseMove(MouseMoveEvent evt)
         {
-            RotationManipulator.OnMouseMove(evt);
+            RotationManipulator.OnMouseMove(evt, false);
         }
 
         private void OnPointerUp(PointerUpEvent evt)
         {
+            target.ReleasePointer(evt.pointerId);
            m_RotationManipulator.OnPointerUp(evt); 
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
         {
-            m_RotationManipulator.OnPointerMove(evt); 
+            m_RotationManipulator.OnPointerMove(evt, false); 
         }
 
         private void OnPointerDown(PointerDownEvent evt)
         {
-            m_RotationManipulator.OnPointerDown(evt); 
+            if(evt.button != 0)
+                return;
+            
+            target.CapturePointer(evt.pointerId);
+            m_RotationManipulator.OnPointerDown(evt, false, false); 
         }
     }
 }

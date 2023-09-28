@@ -26,6 +26,15 @@ This page describes the UI elements of the **Muse Texture** tool.
 | **Eraser** | Toggles between brush and eraser modes. |
 | **Radius** | Sets the size of the brush or eraser. |
 
+## Input Image panel
+
+| **Property** | **Description** |
+| --- | --- |
+| **Import** | Imports an image to use as the reference image. |
+| **Strength** | Determines how closely the generated textures follow the color of the referenced image. Higher values result in closer color matching.|
+| **Tightness** | Determines how closely the generated textures follow the shape of the referenced image. Higher values result in closer shape resemblance or pattern cohesion.|
+| **Patterns** | Selects a pattern to use as the reference pattern. |
+
 ## Image context menu items
 
 The following table describes the context menu (&#8230;) items of a generated image:

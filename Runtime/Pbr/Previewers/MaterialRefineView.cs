@@ -214,10 +214,11 @@ namespace Unity.Muse.Texture
 
             if (m_TargetVe.Artifact is not ImageArtifact imageArtifact) return;
 
-            imageArtifact.MaterialMetaData ??= new ImageArtifact.MaterialData(true);
-            imageArtifact.MaterialMetaData.height = m_TargetVe.Material.GetFloat(MuseMaterialProperties.heightIntensity);
-            imageArtifact.MaterialMetaData.metallic = m_TargetVe.Material.GetFloat(MuseMaterialProperties.metallicIntensity);
-            imageArtifact.MaterialMetaData.roughness = m_TargetVe.Material.GetFloat(MuseMaterialProperties.roughnessIntensity);
+            if (imageArtifact.MaterialMetaData is not { Initialized: true })
+            {
+                imageArtifact.MaterialMetaData = new ImageArtifact.MaterialData(true);
+            }
+            imageArtifact.MaterialMetaData.GetValuesFromMaterial(m_TargetVe.Material);
         }
 
         private void OnPreviewSelected(MaterialPreviewItem obj)
@@ -256,7 +257,7 @@ namespace Unity.Muse.Texture
             {
                 case PreviewType.PBR:
 
-                    tooltip = "Shift + Drag to rotate the model.";
+                    tooltip = "Click + Drag to rotate the model.";
 
                     m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
                         ? DisplayStyle.Flex

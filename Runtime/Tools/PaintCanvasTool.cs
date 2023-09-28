@@ -54,8 +54,11 @@ namespace Unity.Muse.Texture
                 // Disable reference image when going to in-painting mask as they are currently exclusive
                 m_CurrentModel.SetOperatorEnable<ReferenceOperator>(false);
             else if (m_CurrentModel.CurrentOperators.GetOperator<ReferenceOperator>() is not null)
+            {
                 // Disable in-painting mask when setting a new reference image as they are currently exclusive
                 m_CurrentModel.SetOperatorEnable<MaskOperator>(false);
+                m_CurrentModel.SetOperatorEnable<ReferenceOperator>(true);
+            }
 
             // Disable in-painting mask when going out of paint mode
             if (obj is null)

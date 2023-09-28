@@ -12,12 +12,11 @@ namespace Unity.Muse.Texture
 
         const float k_XSpeed = 20.0f;
         const float k_YSpeed = 20.0f;
-        
-        bool m_ModifierRotation;
 
-        public RotationManipulator(bool modifierRotation)
+        private int m_PointerId = -1;
+        
+        public RotationManipulator()
         {
-            m_ModifierRotation = modifierRotation;
         }
 
         protected override void RegisterCallbacksOnTarget()
@@ -36,42 +35,59 @@ namespace Unity.Muse.Texture
             target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
         }
 
-        public void OnPointerDown(PointerDownEvent evt)
+        private void OnPointerDown(PointerDownEvent evt)
         {
-            var isShiftPressed = (evt.modifiers & EventModifiers.Shift) != 0 || !m_ModifierRotation;
-
-            if (!isShiftPressed)
-                return;
-
-            target.CapturePointer(evt.pointerId);
+            OnPointerDown(evt, true);
         }
 
-        public void OnPointerMove(PointerMoveEvent evt)
+        public void OnPointerDown(PointerDownEvent evt, bool useModifier, bool capture = true)
         {
-            var isShiftPressed = (evt.modifiers & EventModifiers.Shift) != 0 || !m_ModifierRotation; 
+            var isShiftPressed = !useModifier || evt.shiftKey; 
 
             if (!isShiftPressed)
                 return;
-            if (!target.HasPointerCapture(evt.pointerId))
-                return;
 
+            if(capture)
+                target.CapturePointer(evt.pointerId);
+            
+            m_PointerId = evt.pointerId;  
+        }
+
+        private void OnPointerMove(PointerMoveEvent evt)
+        {
+           OnPointerMove(evt, true); 
+        }
+
+        public void OnPointerMove(PointerMoveEvent evt, bool useModifier)
+        {
+            var isShiftPressed =  !useModifier || evt.shiftKey;
+
+            if (!isShiftPressed || evt.pointerId != m_PointerId)
+                return;
+            
             var rotX = TotalRotation.x + evt.deltaPosition.x * k_XSpeed * 0.02f;
             var rotY =  TotalRotation.y + evt.deltaPosition.y * k_YSpeed * 0.02f;
             TotalRotation = new Vector2(rotX, rotY);
 
             OnDrag?.Invoke(TotalRotation);
             evt.StopPropagation();
-            evt.StopImmediatePropagation();
+            evt.StopImmediatePropagation(); 
         }
 
         public void OnPointerUp(PointerUpEvent evt)
         {
             target.ReleasePointer(evt.pointerId);
+            m_PointerId = -1;
         }
 
-        public static void OnMouseMove(MouseMoveEvent evt)
+        private static void OnMouseMove(MouseMoveEvent evt)
         {
-            var isShiftPressed = (evt.modifiers & EventModifiers.Shift) != 0;
+           OnMouseMove(evt, true); 
+        }
+        
+        public static void OnMouseMove(MouseMoveEvent evt, bool useModifier)
+        {
+            var isShiftPressed = !useModifier || evt.shiftKey;
             if (!isShiftPressed)
                 return;
             evt.StopPropagation();

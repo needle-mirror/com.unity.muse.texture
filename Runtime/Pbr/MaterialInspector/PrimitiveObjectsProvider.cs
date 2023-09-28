@@ -7,9 +7,6 @@ namespace Unity.Muse.Texture
     {
         public static GameObject GetPrimitiveInstance(PrimitiveObjectTypes primitiveType)
         {
-#if HDRP_PIPELINE_ENABLED
-            return GetHdrpPrimitives(primitiveType);
-#endif
             var path = string.Empty;
             switch (primitiveType)
             {
@@ -35,35 +32,6 @@ namespace Unity.Muse.Texture
             }
 
             return GameObject.Instantiate( Resources.Load<GameObject>(path));
-        }
-
-        static GameObject GetHdrpPrimitives(PrimitiveObjectTypes primitiveObjectTypes)
-        {
-            var gameObjectParent = new GameObject("Preview Primitive");
-            GameObject primitive = null;
-            switch (primitiveObjectTypes)
-            {
-                case PrimitiveObjectTypes.Sphere:
-                    primitive = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    break;
-                case PrimitiveObjectTypes.Cube:
-                    primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    break;
-                case PrimitiveObjectTypes.Plane:
-                    primitive = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                    primitive.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-                    break;
-                case PrimitiveObjectTypes.Cylinder:
-                    primitive = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                    break;
-                case PrimitiveObjectTypes.Custom:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(primitiveObjectTypes), primitiveObjectTypes, null);
-            }
-            if(primitive != null)
-                primitive.transform.parent = gameObjectParent.transform;
-            return gameObjectParent;
         }
     }
 }

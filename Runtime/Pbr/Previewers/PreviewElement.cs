@@ -22,7 +22,8 @@ namespace Unity.Muse.Texture
         private ActionButton m_ActionButton;
         private VisualElement m_ButtonContainer;
         readonly ActionButton m_BookmarkButton;
-        
+        VisualElement m_LeftVerticalContainer;
+
         protected bool m_IsError =>
             m_PreviewImage?.LoadingState == GenericLoader.State.Error ||
             m_PreviewPbr?.GenericLoader.LoadingState == GenericLoader.State.Error;
@@ -36,13 +37,15 @@ namespace Unity.Muse.Texture
 
         public Material Material => m_PreviewPbr.CurrentMaterial;
 
+        const float k_LeftSideWidthVisible = 107f;
+        const float k_EditIconWidthVisible = 70f;
 
         protected PreviewElement(List<PbrMaterialData> pbrMaterialData, Artifact artifact)
             : base(artifact)
         {
             EnableInClassList("no-mouse", !Input.mousePresent);
 
-            styleSheets.Add(Resources.Load<StyleSheet>("uss/Bookmark"));
+            styleSheets.Add(Resources.Load<StyleSheet>("uss/ResultItem"));
             m_PreviewImage = new PreviewImage();
             m_PreviewImage.OnSelected += ArtifactSelected;
 
@@ -56,12 +59,12 @@ namespace Unity.Muse.Texture
             m_ButtonContainer = new VisualElement();
             m_ButtonContainer.AddToClassList("muse-asset-image__control-buttons-container");
 
-            m_EditButton = new ActionButton { name="refine", icon = "pen", tooltip = TextContent.refineTooltip };
+            m_EditButton = new ActionButton { name = "refine", icon = "pen", tooltip = TextContent.refineTooltip };
             m_EditButton.AddToClassList("refine-button");
             m_EditButton.AddToClassList("refine-button-item");
             m_EditButton.clicked += OnRefineClicked;
 
-            m_ActionButton = new ActionButton { name="more", icon = "ellipsis", tooltip = "More options" };
+            m_ActionButton = new ActionButton { name = "more", icon = "ellipsis", tooltip = "More options" };
             m_ActionButton.AddToClassList("refine-button");
             m_ActionButton.AddToClassList("refine-button-item");
             m_ActionButton.clicked += () => OnMenuTriggerClicked();
@@ -70,15 +73,28 @@ namespace Unity.Muse.Texture
             m_ButtonContainer.Add(m_ActionButton);
             m_ButtonContainer.Add(m_EditButton);
 
-            m_BookmarkButton = new ActionButton();
+            m_LeftVerticalContainer = new VisualElement();
+            m_LeftVerticalContainer.AddToClassList("left-vertical-container");
+            m_ButtonContainer.Add(m_LeftVerticalContainer);
+            m_BookmarkButton = new ActionButton
+            {
+                tooltip = TextContent.bookmarkButtonTooltip,
+                icon = "star"
+            };
             m_BookmarkButton.clicked += OnBookmarkClicked;
-            m_BookmarkButton.icon = "star";
-            m_BookmarkButton.AddToClassList("bookmark-button");
-            m_BookmarkButton.AddToClassList("refine-button");
-            m_ButtonContainer.Add(m_BookmarkButton);
+            m_BookmarkButton.AddToClassList("container-button");
+            m_LeftVerticalContainer.Add(m_BookmarkButton);
 
             UpdateVisuals();
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+        }
+
+        void OnGeometryChangedEvent(GeometryChangedEvent evt)
+        {
+            UpdateEditButton();
+            UpdateLeftSideButtons();
+            UpdateBookmark();
         }
 
         void OnBookmarkClicked()
@@ -91,9 +107,35 @@ namespace Unity.Muse.Texture
 
         void UpdateBookmark()
         {
-            var isBookmarked = CurrentModel.GetData<BookmarkManager>().IsBookmarked(m_Artifact);
-            m_BookmarkButton.EnableInClassList("refine-button", !isBookmarked);
+            var isBookmarked = IsBookmarked();
+            m_BookmarkButton.EnableInClassList("bookmarked", isBookmarked);
             m_BookmarkButton.icon = isBookmarked ? "star-filled" : "star";
+        }
+
+        protected bool IsBookmarked()
+        {
+            return CurrentModel.GetData<BookmarkManager>().IsBookmarked(m_Artifact);
+        }
+
+        void UpdateEditButton()
+        {
+            m_EditButton.EnableInClassList("refine-button-hidden", !ShouldEditButtonBeVisible());
+            m_EditButton.EnableInClassList("refine-button", ShouldEditButtonBeVisible());
+        }
+
+        void UpdateLeftSideButtons()
+        {
+            m_LeftVerticalContainer.EnableInClassList("container-hidden", !ShouldLeftSideButtonBeVisible());
+        }
+
+        internal bool ShouldLeftSideButtonBeVisible()
+        {
+            return resolvedStyle.width >= k_LeftSideWidthVisible && resolvedStyle.height >= k_LeftSideWidthVisible;
+        }
+
+        protected bool ShouldEditButtonBeVisible()
+        {
+            return resolvedStyle.width >= k_EditIconWidthVisible;
         }
 
         void OnMenuTriggerClicked()
@@ -159,14 +201,14 @@ namespace Unity.Muse.Texture
         }
 
         protected bool canRefine => isArtifactAvailable &&
-                                    CurrentModel != null && !CurrentModel.isRefineMode;
+            CurrentModel != null && !CurrentModel.isRefineMode;
 
         protected bool canRefineBookmark => isArtifactAvailable &&
             CurrentModel != null;
 
         public override void UpdateView()
         {
-            m_ButtonContainer.style.display =  canRefineBookmark && !m_IsError ? DisplayStyle.Flex : DisplayStyle.None;
+            m_ButtonContainer.style.display = canRefineBookmark && !m_IsError ? DisplayStyle.Flex : DisplayStyle.None;
             m_ButtonContainer.visible = canRefineBookmark;
             m_EditButton.SetEnabled(m_PreviewImage.image != null);
             m_ActionButton.visible = canRefine;
@@ -179,7 +221,7 @@ namespace Unity.Muse.Texture
             UpdateVisuals();
             SetPreviewImage(m_Artifact);
             OnPreviewTypeChanged?.Invoke(m_ActivePreviewState);
-            if(m_Artifact is ImageArtifact imageArtifact)
+            if (m_Artifact is ImageArtifact imageArtifact)
                 imageArtifact.IsPbrMode = m_ActivePreviewState == PreviewType.PBR;
         }
 
@@ -207,7 +249,7 @@ namespace Unity.Muse.Texture
             m_PreviewPbr?.Dispose();
         }
 
-        public GenericLoader.State  GetLoadingState()
+        public GenericLoader.State GetLoadingState()
         {
             return m_ActivePreviewState switch
             {

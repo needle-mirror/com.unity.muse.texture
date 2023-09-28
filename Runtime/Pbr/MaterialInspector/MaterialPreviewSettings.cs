@@ -96,16 +96,20 @@ namespace Unity.Muse.Texture
         {
             m_PrimitivesDropdown.bindItem = (item, i) => item.label = m_PrimitivesDropdownSrc[i];
             m_PrimitivesDropdown.sourceItems = m_PrimitivesDropdownSrc;
-            m_PrimitivesDropdown.SetValueWithoutNotify(0);
+            m_PrimitivesDropdown.SetValueWithoutNotify(new []{ 0 });
             
             m_HdriDropdown.bindItem = (item, i) => item.label = m_HdriDropdownSrc[i];
             m_HdriDropdown.sourceItems = m_HdriDropdownSrc;
-            m_HdriDropdown.SetValueWithoutNotify(0);
+            m_HdriDropdown.SetValueWithoutNotify(new []{ 0 });
         }
         
-        private void OnPrimitiveSelected(ChangeEvent<int> evt)
+        private void OnPrimitiveSelected(ChangeEvent<IEnumerable<int>> evt)
         {
-            OnTargetPrimitiveChanged?.Invoke(evt.newValue switch
+            using var selection = evt.newValue.GetEnumerator();
+            if (!selection.MoveNext())
+                return;
+            
+            OnTargetPrimitiveChanged?.Invoke(selection.Current switch
             {
                 0 => PrimitiveObjectTypes.Sphere,
                 1 => PrimitiveObjectTypes.Cube,
@@ -117,9 +121,13 @@ namespace Unity.Muse.Texture
         }
         
         
-        private void OnHdriSelected(ChangeEvent<int> evt)
+        private void OnHdriSelected(ChangeEvent<IEnumerable<int>> evt)
         {
-            OnHdriChanged?.Invoke(evt.newValue switch
+            using var selection = evt.newValue.GetEnumerator();
+            if (!selection.MoveNext())
+                return;
+            
+            OnHdriChanged?.Invoke(selection.Current switch
             {
                 0 => HdriEnvironment.Default,
                 1 => HdriEnvironment.OutsideNeutral,
@@ -132,12 +140,12 @@ namespace Unity.Muse.Texture
 
         public void SelectPrimitive(PrimitiveObjectTypes type)
         {
-            m_PrimitivesDropdown?.SetValueWithoutNotify((int)type);
+            m_PrimitivesDropdown?.SetValueWithoutNotify(new []{ (int)type });
         }
         
         internal void SelectHdri(HdriEnvironment environment)
         {
-            m_HdriDropdown?.SetValueWithoutNotify((int)environment);
+            m_HdriDropdown?.SetValueWithoutNotify(new []{ (int)environment });
         }
 
 

@@ -34,7 +34,6 @@ namespace Unity.Muse.Texture
             m_PreviewImage.OnDelete += OnDelete;
             m_PreviewPbr.OnDelete += OnDelete;
 
-
             if (artifact is ImageArtifact imageArtifact)
             {
                 SetCurrentState(imageArtifact.IsPbrMode ? PreviewType.PBR : PreviewType.Image);
@@ -43,7 +42,7 @@ namespace Unity.Muse.Texture
 
         private void OnDelete()
         {
-            PerformAction((int)Actions.Delete, new ActionContext(), null); 
+            PerformAction((int)Actions.Delete, new ActionContext(), null);
         }
 
 
@@ -70,7 +69,7 @@ namespace Unity.Muse.Texture
             {
                 return actions;
             }
-            
+
             var isUpscale = Artifact.GetOperators().Find(x => x is UpscaleOperator upscaleOperator && upscaleOperator.Enabled()) != null;
 
             if (CurrentModel.isRefineMode)
@@ -167,6 +166,40 @@ namespace Unity.Muse.Texture
                         id = (int)Actions.UnStar,
                         label = TextContent.unStarMultiple,
                     });
+                }
+                else
+                {
+                    if (!ShouldLeftSideButtonBeVisible())
+                    {
+                        if (IsBookmarked())
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.UnStar,
+                                label = TextContent.unStarSingle,
+                            });
+                        }
+                        else
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.Star,
+                                label = TextContent.starSingle
+                            });
+                        }
+                    }
+
+                    if (!ShouldEditButtonBeVisible() && canRefine)
+                    {
+                        actions.Add(new ContextMenuAction
+                        {
+                            enabled = true,
+                            id = (int)Actions.Refine,
+                            label = TextContent.refineSingle
+                        });
+                    }
                 }
 
                 if (!isUpscale && Artifact is IUpscaleArtifact)

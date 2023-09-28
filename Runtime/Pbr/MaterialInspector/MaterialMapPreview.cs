@@ -19,7 +19,6 @@ namespace Unity.Muse.Texture
         
         public MaterialMapPreview()
         {
-           m_ModifierRotation = false;
            m_MaterialPreviewTexture = s_MaterialPreviewer.CreateDefaultRenderTexture();
         }
 

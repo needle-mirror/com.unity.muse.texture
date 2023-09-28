@@ -15,6 +15,7 @@ namespace Unity.Muse.Texture.Editor
             pathName = Path.ChangeExtension(pathName, ".asset");
 
             var asset = CreateInstance<Model>();
+            asset.Initialize();
             int mode = ModesFactory.GetModeIndexFromKey(k_MuseTextureModeKey);
             if (mode < 0)
                 Debug.LogError($"Mode {k_MuseTextureModeKey} not found");
@@ -25,7 +26,7 @@ namespace Unity.Muse.Texture.Editor
             AssetDatabase.Refresh();
         }
 
-        [MenuItem("Assets/Create/Muse/Muse Texture")]
+        [MenuItem("Assets/Create/Muse/Texture Generator", false, 0)]
         static void CreateSpriteLibrarySourceAssetMenu()
         {
             var action = CreateInstance<MuseAssetCreation>();

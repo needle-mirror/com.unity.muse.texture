@@ -36,6 +36,11 @@ namespace Unity.Muse.Texture
 
         internal void Render(Material material, RenderTexture renderTexture, Vector3 cameraRotation, float cameraDistance, PrimitiveObjectTypes previewType, HdriEnvironment environment)
         {
+#if !HDRP_PIPELINE_ENABLED
+            var currentRenderSettings = new RenderSettingsData();
+            currentRenderSettings.CopyRenderSettings();
+#endif
+            
             m_SceneHandler.InitializePrimitiveTarget(previewType);
             m_SceneHandler.InitializeReflectionProbe(environment);
             m_SceneHandler.MaterialTarget.sharedMaterial = material;
@@ -57,6 +62,11 @@ namespace Unity.Muse.Texture
             camera.fieldOfView = (float)(Mathf.Atan((renderTexture.width <= 0 ? 1f : Mathf.Max(1f, renderTexture.height / (float)renderTexture.width)) * Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 2.0);
             camera.Render();
             camera.fieldOfView = fieldOfView;
+            
+#if !HDRP_PIPELINE_ENABLED
+            currentRenderSettings.ApplyCurrentSettings();
+            DynamicGI.UpdateEnvironment();
+#endif
         }
 
         public RenderTexture CreateDefaultRenderTexture(int width = 2048, int height = 2048)

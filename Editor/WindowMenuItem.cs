@@ -8,13 +8,13 @@ namespace Unity.Muse.Texture.Editor
     {
         const string k_MuseTextureModeKey = "TextToImage";
 
-        [MenuItem("Muse/Muse Texture", false, 100)]
+        [MenuItem("Muse/New Texture Generator", false, 100)]
         public static void CreateTextureWindow()
         {
             EditorModelAssetEditor.OpenWindowForMode(k_MuseTextureModeKey);
         }
         
-        [MenuItem("Muse/Muse Texture", true)]
+        [MenuItem("Muse/New Texture Generator", true)]
         public static bool ValidateCreateSpriteWindow()
         {
             return ModesFactory.GetModeIndexFromKey(k_MuseTextureModeKey) > -1;

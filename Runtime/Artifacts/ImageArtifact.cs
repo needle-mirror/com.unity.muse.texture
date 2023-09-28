@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using Unity.Muse.Common;
 using Unity.Muse.Texture.Analytics;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Texture
 {
     [Serializable]
-    public sealed class ImageArtifact : Artifact<Texture2D>, IGenerateArtifact, IVariateArtifact, IInpaintArtifact, IUpscaleArtifact
+    public sealed class ImageArtifact : SimpleImageArtifact, IGenerateArtifact, IVariateArtifact, IInpaintArtifact, IUpscaleArtifact
     {
-        public override string FileExtension => "png";
-
         internal bool IsPbrMode = false;
 
         /// <summary>
@@ -23,72 +22,6 @@ namespace Unity.Muse.Texture
 
         public ImageArtifact()
             : base(string.Empty, 0) { }
-
-
-        /// <inheritdoc cref="Artifact{T}"/>
-        public override Texture2D ConstructFromData(byte[] data)
-        {
-            Texture2D tex = TextureUtils.Create();
-            tex.LoadImage(data);
-
-            return tex;
-        }
-
-        /// <inheritdoc cref="Artifact{T}"/>
-        protected override Texture2D CreateFromData(byte[] data, bool updateCache)
-        {
-            Texture2D tex = ConstructFromData(data);
-
-            if (updateCache)
-            {
-                WriteToCache(data);
-            }
-
-            return tex;
-        }
-
-        /// <inheritdoc cref="Artifact{T}"/>
-        protected override Texture2D ReadFromCache(out byte[] rawData)
-        {
-            if (ArtifactCache.Read(this) is Texture2D tex)
-            {
-                rawData = ArtifactCache.ReadRawData(this);
-                return tex;
-            }
-            rawData = null;
-            return null;
-            /*
-        if (!GeneratedArtifactCache.TryGetCachedArtifact(this, out var tex, out rawData))
-        {
-            rawData = null;
-            return null;
-        }
-
-        return tex;*/
-        }
-
-        protected override byte[] ReadFromCacheRaw()
-        {
-            ReadFromCache(out var raw);
-            return raw;
-        }
-
-        /// <inheritdoc cref="Artifact{T}"/>
-        protected override void WriteToCache(byte[] value)
-        {
-            ArtifactCache.Write(this, value);
-
-            // TODO: Cloudlab
-            //GeneratedArtifactCache.WriteArtifactToCache(this, bytes);
-        }
-
-        public override void GetPreview(ArtifactPreviewDelegate onDoneCallback, bool useCache)
-        {
-            GetArtifact((instance, data, message) =>
-            {
-                onDoneCallback?.Invoke(instance, data, message);
-            }, true);
-        }
 
         /// <summary>
         /// Only called once for a generation group
@@ -154,7 +87,7 @@ namespace Unity.Muse.Texture
             var referenceOp = m_Operators.GetOperator<ReferenceOperator>();
             var isVariation = referenceOp != null && referenceOp.Enabled();
 
-            if(isVariation)
+            if (isVariation)
                 Variate(m_Operators);
             else
                 Generate(model);
@@ -167,11 +100,54 @@ namespace Unity.Muse.Texture
             random.NextBytes(buffer);
             var promptOperator = ops.GetOperator<PromptOperator>();
             var negativePromptOperator = ops.GetOperator<NegativePromptOperator>();
-            var settings = new TextToImageRequest(negativePromptOperator?.GetNegativePrompt(), true, (uint)BitConverter.ToUInt32(buffer, 0), (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4, 512, 512);
-            var referenceOp = ops.GetOperator<ReferenceOperator>();
-            SetOperators(ops);
-            GenerativeAIBackend.VariateImage(referenceOp.GetOperatorData().settings[0], promptOperator?.GetPrompt(), settings, OnGeneratingDone);
+            var referenceOperator = ops.GetOperator<ReferenceOperator>();
 
+            var settings = new ImageVariationSettingsRequest(
+                negativePromptOperator?.GetNegativePrompt(),
+                true,
+                (uint)BitConverter.ToUInt32(buffer, 0),
+                (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4,
+                512,
+                512,
+                referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength) / 100.0f);
+
+            var guid = referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid);
+            var imageBase64 = referenceOperator.GetSettingString(ReferenceOperator.Setting.Image);
+            
+            SetOperators(ops);
+            GenerativeAIBackend.VariateImage(
+                guid,
+                imageBase64,
+                promptOperator?.GetPrompt(),
+                settings,
+                OnGeneratingDone);
+        }
+
+        public override void Shape(List<IOperator> ops)
+        {
+            var buffer = new byte[4];
+            var random = new System.Random();
+            random.NextBytes(buffer);
+            var promptOperator = ops.GetOperator<PromptOperator>();
+            var negativePromptOperator = ops.GetOperator<NegativePromptOperator>();
+            var referenceOperator = ops.GetOperator<ReferenceOperator>();
+
+            var settings = new ImageVariationSettingsRequest(
+                negativePromptOperator?.GetNegativePrompt(),
+                true,
+                (uint)BitConverter.ToUInt32(buffer, 0),
+                (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4,
+                512,
+                512,
+                referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength) / 100.0f);
+
+            SetOperators(ops);
+            GenerativeAIBackend.ControlNetGenerate(
+                referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid),
+                referenceOperator.GetSettingString(ReferenceOperator.Setting.Image),
+                promptOperator?.GetPrompt(),
+                settings,
+                OnGeneratingDone);
         }
 
         public void Variate(Model model, int variationNbr = 4)
@@ -181,15 +157,28 @@ namespace Unity.Muse.Texture
 
             var promptOperator = m_Operators.GetOperator<PromptOperator>();
             var negativePromptOperator = m_Operators.GetOperator<NegativePromptOperator>();
+            var referenceOperator = m_Operators.GetOperator<ReferenceOperator>();
 
             for (var i = 0; i < variationNbr; ++i)
             {
                 random.NextBytes(buffer);
-                var settings = new TextToImageRequest(negativePromptOperator?.GetNegativePrompt(), true, (uint)BitConverter.ToUInt32(buffer, 0), (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4, 512, 512);
+                var settings = new ImageVariationSettingsRequest(
+                    negativePromptOperator?.GetNegativePrompt(),
+                    true,
+                    (uint)BitConverter.ToUInt32(buffer, 0),
+                    (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4,
+                    512,
+                    512,
+                    referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength) / 100.0f);
 
                 var newArtifact = new ImageArtifact();
                 newArtifact.SetOperators(m_Operators);
-                GenerativeAIBackend.VariateImage(Guid, promptOperator?.GetPrompt(), settings, newArtifact.OnGeneratingDone);
+                GenerativeAIBackend.VariateImage(
+                    Guid,
+                    string.Empty,
+                    promptOperator?.GetPrompt(),
+                    settings,
+                    newArtifact.OnGeneratingDone);
                 model.AddAsset(newArtifact);
             }
         }
@@ -272,8 +261,38 @@ namespace Unity.Muse.Texture
         /// <summary>
         /// Meta data associated with Generated Materials
         /// </summary>
+        [System.Serializable]
         public class MaterialData
         {
+            /// <summary>
+            /// if the material data has been initialized with default values
+            /// </summary>
+            public bool Initialized => m_Initialized;
+            
+            /// <summary>
+            /// Tiling value for the material
+            /// </summary>
+            public Vector2 tiling;
+            /// <summary>
+            /// offset value for the material
+            /// </summary>
+            public Vector2 offset;
+            /// <summary>
+            /// rotation value for the material
+            /// </summary>
+            public float rotation;
+            /// <summary>
+            /// vertical flip value for the material
+            /// </summary>
+            public bool flipVertical;
+            /// <summary>
+            /// horizontal flip value for the material
+            /// </summary>
+            public bool flipHorizontal;
+            /// <summary>
+            /// displacement value for the material
+            /// </summary>
+            public bool useDisplacement;
             /// <summary>
             /// Height value for the material
             /// </summary>
@@ -288,17 +307,55 @@ namespace Unity.Muse.Texture
             public float roughness;
 
             /// <summary>
+            /// value if it was initialized with default values
+            /// </summary>
+            [SerializeField]
+            bool m_Initialized;
+
+            /// <summary>
             /// We don't want to initialize the data by default aka when serialization occurs
             /// </summary>
             /// <param name="initializeData"></param>
             public MaterialData(bool initializeData = false)
             {
-                if(!initializeData) return;
+                m_Initialized = true;
+                if (!initializeData) return;
 
                 var shader = MaterialGeneratorUtils.GetDefaultShaderForPipeline();
+                tiling = shader.GetPropertyDefaultVectorValue(shader.FindPropertyIndex("_Tiling"));
+                offset = shader.GetPropertyDefaultVectorValue(shader.FindPropertyIndex("_Offset"));
+                rotation = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_Rotation"));
+                flipVertical = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_FlipVertical")) == 1.0f;
+                flipHorizontal = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_FlipHorizontal")) == 1.0f;
+                useDisplacement = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_UseDisplacement")) == 1.0f;
                 height = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_HeightIntensity"));
                 metallic = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_MetallicIntensity"));
                 roughness = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_RoughnessIntensity"));
+            }
+
+            public void GetValuesFromMaterial(Material material)
+            {
+                tiling = material.GetVector(MuseMaterialProperties.tilingKey);
+                offset = material.GetVector(MuseMaterialProperties.offsetKey);
+                rotation = material.GetFloat(MuseMaterialProperties.rotationKey);
+                flipVertical = material.GetFloat(MuseMaterialProperties.flipVertical) == 1.0f;
+                flipHorizontal = material.GetFloat(MuseMaterialProperties.flipHorizontal) == 1.0f;
+                useDisplacement = material.GetFloat(MuseMaterialProperties.useDisplacement) == 1.0f;
+                height = material.GetFloat(MuseMaterialProperties.heightIntensity);
+                metallic = material.GetFloat(MuseMaterialProperties.metallicIntensity);
+                roughness = material.GetFloat(MuseMaterialProperties.roughnessIntensity);
+            }
+            public void ApplyToMaterial(Material material)
+            {
+                material.SetVector(MuseMaterialProperties.tilingKey, tiling);
+                material.SetVector(MuseMaterialProperties.offsetKey, offset);
+                material.SetFloat(MuseMaterialProperties.rotationKey, rotation);
+                material.SetFloat(MuseMaterialProperties.flipVertical, flipVertical ? 1.0f : 0.0f);
+                material.SetFloat(MuseMaterialProperties.flipHorizontal, flipHorizontal ? 1.0f : 0.0f);
+                material.SetFloat(MuseMaterialProperties.useDisplacement, useDisplacement ? 1.0f : 0.0f);
+                material.SetFloat(MuseMaterialProperties.heightIntensity, height);
+                material.SetFloat(MuseMaterialProperties.metallicIntensity, metallic);
+                material.SetFloat(MuseMaterialProperties.roughnessIntensity, roughness);
             }
         }
     }
