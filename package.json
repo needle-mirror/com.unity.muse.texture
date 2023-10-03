@@ -1,7 +1,7 @@
 {
   "name": "com.unity.muse.texture",
   "displayName": "Muse Texture Tool",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "unity": "2022.3",
   "description": "Muse Texture Tool is a package that provides a set of tools to help create AI-generated texture content from text input in Unity.",
   "dependencies": {
@@ -20,15 +20,15 @@
     "com.unity.muse.common.tests": "0.3.0"
   },
   "_upm": {
-    "changelog": "### Added\n\n- Add an option to toggle the vertex displacement in PBR refinement.\n- Add Input Image operator.\n\n### Changed\n\n- Change Cylinder and Cube in PBR refinement.\n- No need to shift + click to rotate the preview in PBR refinement."
+    "changelog": "### Fixed\n\n- Fix camera settings compatibility issues with the HDRP package."
   },
   "upmCi": {
-    "footprint": "dacd005ef02f88623e253334fe1936fe44361bf3"
+    "footprint": "82ff7bd61a1ad6d53c1d4795bb8d9aed7b4f5508"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@0.3/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "5969a3e565b4f1d647235a78ef428c516aa47bd3"
+    "revision": "ad20dbc1c324c4d101673915bff07f7ed9464cf9"
   }
 }

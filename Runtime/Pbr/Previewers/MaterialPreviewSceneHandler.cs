@@ -43,6 +43,9 @@ namespace Unity.Muse.Texture
 
         void InitializeScene()
         {
+            if(!LayerManager.CreateLayer())
+                return;
+            
             InitializeCamera();
             InitializeLights();
             InitializePrimitiveTarget();
@@ -51,10 +54,33 @@ namespace Unity.Muse.Texture
         void InitializeCamera()
         {
 #if HDRP_PIPELINE_ENABLED
-            var previewCamera = GameObject.Instantiate(Resources.Load<GameObject>("HDRP/Preview Scene Camera"));
+            var previewCamera = new GameObject("Preview Scene Camera", typeof(Camera))
+            {
+                hideFlags = HideFlags.DontSave
+            };
+
             previewCamera.hideFlags = HideFlags.DontSave;
-            m_VolumeProfile = previewCamera.GetComponentInChildren<Volume>().profile;
-            m_HdriSky = m_VolumeProfile.components.Find(x => x is HDRISky) as HDRISky; 
+            
+            var volume = new GameObject("Global Volume", typeof(Volume)).GetComponent<Volume>();
+            var collider = volume.gameObject.AddComponent<SphereCollider>().GetComponent<SphereCollider>();
+            collider.radius = 10f;
+            
+            volume.isGlobal = false;
+            m_VolumeProfile = volume.profile;
+            
+
+            m_HdriSky = m_VolumeProfile.Add<HDRISky>(); 
+            m_HdriSky.exposure.Override(1f);
+            
+            var toneMapping = m_VolumeProfile.Add<Tonemapping>();
+            toneMapping.mode.Override(TonemappingMode.None);
+            
+            var visualEnvironment = m_VolumeProfile.Add<VisualEnvironment>();
+            visualEnvironment.skyType.Override((int)SkyType.HDRI);
+            visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
+            
+            
+            AddGameObject(volume.gameObject);
 #else
             var previewCamera = new GameObject("Preview Scene Camera", typeof(Camera))
             {
@@ -73,6 +99,7 @@ namespace Unity.Muse.Texture
             m_Camera.useOcclusionCulling = false;
             m_Camera.scene = m_Scene;
             m_Camera.clearFlags = CameraClearFlags.SolidColor;
+            m_Camera.cullingMask = LayerMask.GetMask(LayerManager.MuseLayerName);
 
             var defaultBackgroundColor = Color.clear;
             var colorSpace = QualitySettings.activeColorSpace;
@@ -80,6 +107,9 @@ namespace Unity.Muse.Texture
 
 #if HDRP_PIPELINE_ENABLED
             var cameraHighDefData = m_Camera.gameObject.GetComponent<HDAdditionalCameraData>();
+            if(cameraHighDefData == null)
+                cameraHighDefData = m_Camera.gameObject.AddComponent<HDAdditionalCameraData>();
+            
             cameraHighDefData.antialiasing = HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing;
             cameraHighDefData.dithering = true;
             cameraHighDefData.clearDepth = true;
@@ -92,7 +122,13 @@ namespace Unity.Muse.Texture
             cameraHighDefData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.Tonemapping, false);
             cameraHighDefData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, false);
             cameraHighDefData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
+            
+            cameraHighDefData.probeLayerMask = LayerMask.GetMask(LayerManager.MuseLayerName);
+            cameraHighDefData.volumeLayerMask = LayerMask.GetMask(LayerManager.MuseLayerName);
+
+            m_Camera.enabled = true;
             //TODO: What other HDRP render features?
+            
 #endif
         }
 
@@ -220,6 +256,7 @@ namespace Unity.Muse.Texture
         void AddGameObject(GameObject go)
         {
             SceneManager.MoveGameObjectToScene(go, m_Scene);
+            LayerManager.AssignLayer(go);
         }
 
         public void Dispose()

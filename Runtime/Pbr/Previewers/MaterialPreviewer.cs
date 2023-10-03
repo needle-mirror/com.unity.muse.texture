@@ -1,11 +1,15 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+#if HDRP_PIPELINE_ENABLED
+using UnityEngine.Rendering.HighDefinition;
+#endif
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Texture
 {
-    public class MaterialPreviewer: IDisposable
+    public class MaterialPreviewer : IDisposable
     {
         MaterialPreviewSceneHandler m_SceneHandler;
 
@@ -18,15 +22,9 @@ namespace Unity.Muse.Texture
         {
             Scene previewScene;
 #if UNITY_EDITOR
-            if (Application.isPlaying)
-            {
-                previewScene = SceneManager.CreateScene(Guid.NewGuid().ToString());
-            }
-            else
-            {
-                previewScene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
-                previewScene.name = "Material Previewer";
-            }
+
+            previewScene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            previewScene.name = "Material Previewer";
 #else
             previewScene = SceneManager.CreateScene(Guid.NewGuid().ToString());
 #endif
@@ -34,7 +32,8 @@ namespace Unity.Muse.Texture
             m_SceneHandler = new MaterialPreviewSceneHandler(previewScene);
         }
 
-        internal void Render(Material material, RenderTexture renderTexture, Vector3 cameraRotation, float cameraDistance, PrimitiveObjectTypes previewType, HdriEnvironment environment)
+        internal void Render(Material material, RenderTexture renderTexture, Vector3 cameraRotation,
+            float cameraDistance, PrimitiveObjectTypes previewType, HdriEnvironment environment)
         {
 #if !HDRP_PIPELINE_ENABLED
             var currentRenderSettings = new RenderSettingsData();
@@ -49,7 +48,7 @@ namespace Unity.Muse.Texture
             var negDistance = new Vector3(0.0f, 0f, -cameraDistance);
 
             var position = rotation * negDistance + m_SceneHandler.MaterialTarget.transform.parent.position;
-            
+
             var camera = m_SceneHandler.Camera;
 
             var transform = camera.transform;
@@ -59,10 +58,13 @@ namespace Unity.Muse.Texture
             camera.targetTexture = renderTexture;
             //Always adjust FoV to work within the shape of our render target
             var fieldOfView = m_SceneHandler.Camera.fieldOfView;
-            camera.fieldOfView = (float)(Mathf.Atan((renderTexture.width <= 0 ? 1f : Mathf.Max(1f, renderTexture.height / (float)renderTexture.width)) * Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 2.0);
+            camera.fieldOfView =
+                (float)(Mathf.Atan(
+                    (renderTexture.width <= 0 ? 1f : Mathf.Max(1f, renderTexture.height / (float)renderTexture.width)) *
+                    Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 2.0);
             camera.Render();
             camera.fieldOfView = fieldOfView;
-            
+
 #if !HDRP_PIPELINE_ENABLED
             currentRenderSettings.ApplyCurrentSettings();
             DynamicGI.UpdateEnvironment();
@@ -71,8 +73,11 @@ namespace Unity.Muse.Texture
 
         public RenderTexture CreateDefaultRenderTexture(int width = 2048, int height = 2048)
         {
-            var colorFormat = m_SceneHandler.Camera.allowHDR ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R8G8B8A8_UNorm;
-            return new RenderTexture(width, height, colorFormat, SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil))
+            var colorFormat = m_SceneHandler.Camera.allowHDR
+                ? GraphicsFormat.R16G16B16A16_SFloat
+                : GraphicsFormat.R8G8B8A8_UNorm;
+            return new RenderTexture(width, height, colorFormat,
+                SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil))
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
