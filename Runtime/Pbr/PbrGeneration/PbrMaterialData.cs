@@ -1,11 +1,12 @@
 using System;
 using Unity.Muse.Common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Unity.Muse.Texture
 {
     [Serializable]
-    public class PbrMaterialData
+    internal class PbrMaterialData
     {
         [SerializeField]
         public ImageArtifact BaseMapSourceArtifact;
@@ -13,8 +14,8 @@ namespace Unity.Muse.Texture
         public ImageArtifact NormalMapSourceArtifact;
         [SerializeField]
         public ImageArtifact MetallicMapSourceArtifact;
-        [SerializeField]
-        public ImageArtifact RoughnessMapSourceArtifact;
+        [FormerlySerializedAs("RoughnessMapSourceArtifact")] [SerializeField]
+        public ImageArtifact SmoothnessMapSourceArtifact;
         [SerializeField]
         public ImageArtifact HeightmapSourceArtifact;
         [SerializeField]
@@ -26,12 +27,12 @@ namespace Unity.Muse.Texture
             BaseMapSourceArtifact = processedData.BaseMap;
             NormalMapSourceArtifact = processedData.NormalMap;
             MetallicMapSourceArtifact = processedData.MetallicMap;
-            RoughnessMapSourceArtifact = processedData.RoughnessMap;
+            SmoothnessMapSourceArtifact = processedData.SmoothnessMap;
             HeightmapSourceArtifact = processedData.HeightmapMap;
         }
     }
 
-    public struct ProcessedPbrMaterialData
+    internal struct ProcessedPbrMaterialData
     {
         public static readonly ProcessedPbrMaterialData k_FailedData = new ProcessedPbrMaterialData()  {
                                                                                             BaseMap = null,
@@ -40,8 +41,8 @@ namespace Unity.Muse.Texture
                                                                                             NormalMapPNGData = null,
                                                                                             MetallicMap = null,
                                                                                             MetallicMapPNGData = null,
-                                                                                            RoughnessMap = null,
-                                                                                            RoughnessMapPNGData = null,
+                                                                                            SmoothnessMap = null,
+                                                                                            SmoothnessMapPNGData = null,
                                                                                             HeightmapMap = null,
                                                                                             HeightmapPNGData = null,
                                                                                             AOMapPNGData = null,
@@ -57,8 +58,8 @@ namespace Unity.Muse.Texture
         public byte[] NormalMapPNGData;
         public ImageArtifact MetallicMap;
         public byte[] MetallicMapPNGData;
-        public ImageArtifact RoughnessMap;
-        public byte[] RoughnessMapPNGData;
+        [FormerlySerializedAs("RoughnessMap")] public ImageArtifact SmoothnessMap;
+        [FormerlySerializedAs("RoughnessMapPNGData")] public byte[] SmoothnessMapPNGData;
         public ImageArtifact HeightmapMap;
         public byte[] HeightmapPNGData;
 

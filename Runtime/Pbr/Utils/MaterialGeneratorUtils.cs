@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace Unity.Muse.Texture
 {
-    public static partial class MaterialGeneratorUtils
+    internal static partial class MaterialGeneratorUtils
     {
         /// <summary>
         ///
@@ -40,10 +40,10 @@ namespace Unity.Muse.Texture
             metallicMap.LoadImage(materialData.MetallicMapPNGData);
             targetMaterial.SetTexture(MuseMaterialProperties.metallicMapKey, metallicMap);
 
-            var roughnessMap = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
-            ObjectUtils.Retain(roughnessMap, context);
-            roughnessMap.LoadImage(materialData.RoughnessMapPNGData);
-            targetMaterial.SetTexture(MuseMaterialProperties.roughnessMapKey, roughnessMap);
+            var smoothnessMap = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
+            ObjectUtils.Retain(smoothnessMap, context);
+            smoothnessMap.LoadImage(materialData.SmoothnessMapPNGData);
+            targetMaterial.SetTexture(MuseMaterialProperties.smoothnessMapKey, smoothnessMap);
 
             var heighMap = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
             ObjectUtils.Retain(heighMap, context);
@@ -51,6 +51,7 @@ namespace Unity.Muse.Texture
             targetMaterial.SetTexture(MuseMaterialProperties.heightMapKey, heighMap);
             
             var aoMap = new Texture2D(2, 2, TextureFormat.RGBA32, true, true);
+            ObjectUtils.Retain(aoMap, context);
             aoMap.LoadImage(materialData.AOMapPNGData);
             targetMaterial.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap); 
         }

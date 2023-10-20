@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace Unity.Muse.Texture
 {
-    public abstract class MuseTextureBackend: GenerativeAIBackend
+    internal abstract class MuseTextureBackend: GenerativeAIBackend
     {
         static readonly string k_GenerateBatchPbrMapURL = $"{k_ServiceBaseURL}/pbr/batch/generate";
         static readonly string k_GenerateImageURL = $"{k_TextToImageServiceBaseURL}/generate";
@@ -87,7 +87,7 @@ namespace Unity.Muse.Texture
         /// <param name="mapTypes"></param>
         /// <param name="onDone"></param>
         /// <returns>The the reference to the async operation this generates so that it may be cancelled</returns>
-        public static UnityWebRequestAsyncOperation GenerateBatchPbrMap(ImageArtifact fromImage, PBRMapTypes[] mapTypes, Action<BatchPBRResponse, string> onDone)
+        internal static UnityWebRequestAsyncOperation GenerateBatchPbrMap(ImageArtifact fromImage, PBRMapTypes[] mapTypes, Action<BatchPBRResponse, string> onDone)
         {
             var backendMapTypeNames = mapTypes.Select(GetMapTypeName).ToArray();
 
@@ -118,7 +118,7 @@ namespace Unity.Muse.Texture
                 PBRMapTypes.Height => "height",
                 PBRMapTypes.Normal => "normal",
                 PBRMapTypes.Metallic => "metallic",
-                PBRMapTypes.Roughness => "roughness",
+                PBRMapTypes.Smoothness => "roughness",
                 PBRMapTypes.AO => "ao",
                 _ => string.Empty
             };
@@ -131,7 +131,7 @@ namespace Unity.Muse.Texture
                 PBRMapTypes.Height => guids.height,
                 PBRMapTypes.Normal => guids.normal,
                 PBRMapTypes.Metallic => guids.metallic,
-                PBRMapTypes.Roughness => guids.roughness,
+                PBRMapTypes.Smoothness => guids.roughness,
                 PBRMapTypes.AO => guids.ao,
                 _ => string.Empty
             };

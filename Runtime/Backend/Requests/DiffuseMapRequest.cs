@@ -4,7 +4,7 @@ using Unity.Muse.Common;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class DiffuseMapRequest: GuidItemRequest
+    internal class DiffuseMapRequest: GuidItemRequest
     {
 
         /// <summary>
@@ -16,7 +16,7 @@ namespace Unity.Muse.Common
         }
 
         [Serializable]
-        public class DiffuseMapSettings
+        internal class DiffuseMapSettings
         {
             public int height;
             public int width;

@@ -12,7 +12,7 @@ using UnityEngine.Scripting;
 namespace Unity.Muse.Texture.Editor
 {
     [Preserve]
-    public sealed class PbrArtifactDragAndDropHandler : IArtifactDragAndDropHandler
+    internal sealed class PbrArtifactDragAndDropHandler : IArtifactDragAndDropHandler
     {
         ImageArtifact m_BaseMap;
         ProcessedPbrMaterialData m_ProcessedMaterialData;
@@ -33,7 +33,7 @@ namespace Unity.Muse.Texture.Editor
             Debug.Assert(m_ProcessedMaterialData.MetallicMapPNGData != null);
             Debug.Assert(m_ProcessedMaterialData.HeightmapPNGData != null);
             Debug.Assert(m_ProcessedMaterialData.NormalMapPNGData != null);
-            Debug.Assert(m_ProcessedMaterialData.RoughnessMapPNGData != null);
+            Debug.Assert(m_ProcessedMaterialData.SmoothnessMapPNGData != null);
         }
 
         bool EvaluateDropTarget(GameObject go)

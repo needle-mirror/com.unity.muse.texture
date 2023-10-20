@@ -4,12 +4,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2023-10-20
+
+### Added
+
+- Add option for Default Path of Muse assets in Preferences.
+
+### Changed
+
+- Change minimum version of shadergraph to "14.0.7".
+- Reduce import time of HDRI images.
+- Change Roughness references to Smoothness.
+
+### Fixed
+
+- Retain textures on scene changed.
+- Fix default camera being replaced.
+- Fix preview scenes leaking.
+- Fix NullReferenceException when using the inpainting tool.
+- Fix empty canvas when a texture is loaded.
+- Fix UltraLiteDB could not be found when doing builds.
+
 ## [0.3.1] - 2023-10-03
 
 ### Fixed
 
-- Fix camera settings compatibility issues with the HDRP package. 
- 
+- Fix camera settings compatibility issues with the HDRP package.
+
 ## [0.3.0] - 2023-09-28
 
 ### Added

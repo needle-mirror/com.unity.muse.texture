@@ -6,8 +6,7 @@ using UnityEditor;
 
 namespace Unity.Muse.Texture
 {
-    
-    public static class LayerManager
+    internal static class LayerManager
     {
         public const string MuseLayerName = "MuseTextureLayer";
         

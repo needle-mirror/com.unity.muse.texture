@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class BatchPBRResponse : Response
+    internal class BatchPBRResponse : Response
     {
         public PBRMapGuids pbrs;
     }

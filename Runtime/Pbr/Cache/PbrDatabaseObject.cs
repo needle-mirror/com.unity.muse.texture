@@ -1,11 +1,11 @@
 namespace Unity.Muse.Texture.Pbr.Cache
 {
-    public class PbrDatabaseObject
+    internal class PbrDatabaseObject
     {
         public string AlbedoGuid {get; set;}
         public string NormalGuid {get; set;}
         public string MetallicGuid {get; set;}
-        public string RoughnessGuid {get; set;}
+        public string SmoothnessGuid {get; set;}
         public string HeightGuid {get; set;}
         public string DiffuseGuid {get; set;}
 
@@ -16,7 +16,7 @@ namespace Unity.Muse.Texture.Pbr.Cache
             AlbedoGuid = materialData.BaseMap?.Guid;
             NormalGuid = materialData.NormalMap?.Guid;
             MetallicGuid = materialData.MetallicMap?.Guid;
-            RoughnessGuid = materialData.RoughnessMap?.Guid;
+            SmoothnessGuid = materialData.SmoothnessMap?.Guid;
             HeightGuid = materialData.HeightmapMap?.Guid;
             DiffuseGuid = materialData.DiffuseMap?.Guid;
         }

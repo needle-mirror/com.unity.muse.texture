@@ -18,7 +18,7 @@ namespace Unity.Muse.Texture
         private IconButton m_DiffuseMapPreviewButton;
         private IconButton m_HeightMapPreviewButton;
         private IconButton m_MetallicMapPreviewButton;
-        private IconButton m_RoughnessMapPreviewButton;
+        private IconButton m_SmoothnessMapPreviewButton;
         private IconButton m_AOMapPreviewButton;
 
         private Material m_Material;
@@ -90,8 +90,8 @@ namespace Unity.Muse.Texture
             
             Add(new IconButton()
             {
-                name = "RoughnessMap",
-                tooltip = "Roughness map preview"
+                name = "SmoothnessMap",
+                tooltip = "Smoothness map preview"
             });
             
             Add(new IconButton()
@@ -110,7 +110,7 @@ namespace Unity.Muse.Texture
             m_DiffuseMapPreviewButton = this.Q<IconButton>("UnlitMap");
             m_HeightMapPreviewButton = this.Q<IconButton>("HeightMap");
             m_MetallicMapPreviewButton = this.Q<IconButton>("MetallicMap");
-            m_RoughnessMapPreviewButton = this.Q<IconButton>("RoughnessMap");
+            m_SmoothnessMapPreviewButton = this.Q<IconButton>("SmoothnessMap");
             m_AOMapPreviewButton = this.Q<IconButton>("AOMap");
 
             m_ArtifactPreviewButton.clickable.clicked += OnArtifactPreviewClicked;
@@ -118,7 +118,7 @@ namespace Unity.Muse.Texture
             m_DiffuseMapPreviewButton.clickable.clicked += OnDiffusePreviewClicked;
             m_HeightMapPreviewButton.clickable.clicked += OnHeightPreviewClicked;
             m_MetallicMapPreviewButton.clickable.clicked += OnMetallicPreviewClicked;
-            m_RoughnessMapPreviewButton.clickable.clicked += OnRoughnessPreviewClicked;
+            m_SmoothnessMapPreviewButton.clickable.clicked += OnSmoothnessPreviewClicked;
             m_AOMapPreviewButton.clickable.clicked += OnAOPreviewClicked;
 
             InitializeIcons();
@@ -134,7 +134,7 @@ namespace Unity.Muse.Texture
             m_DiffuseMapPreviewButton.clickable.clicked -= OnDiffusePreviewClicked;
             m_HeightMapPreviewButton.clickable.clicked -= OnHeightPreviewClicked;
             m_MetallicMapPreviewButton.clickable.clicked -= OnMetallicPreviewClicked;
-            m_RoughnessMapPreviewButton.clickable.clicked -= OnRoughnessPreviewClicked;
+            m_SmoothnessMapPreviewButton.clickable.clicked -= OnSmoothnessPreviewClicked;
             m_AOMapPreviewButton.clickable.clicked += OnAOPreviewClicked;
             
             m_ArtifactPreviewButton = null;
@@ -142,7 +142,7 @@ namespace Unity.Muse.Texture
             m_DiffuseMapPreviewButton = null;
             m_HeightMapPreviewButton = null;
             m_MetallicMapPreviewButton = null;
-            m_RoughnessMapPreviewButton = null;
+            m_SmoothnessMapPreviewButton = null;
             m_AOMapPreviewButton = null;
         }
 
@@ -166,7 +166,7 @@ namespace Unity.Muse.Texture
             InitializeIcon(m_DiffuseMapPreviewButton, MuseMaterialProperties.baseMapKey);
             InitializeIcon(m_HeightMapPreviewButton, MuseMaterialProperties.heightMapKey);
             InitializeIcon(m_MetallicMapPreviewButton, MuseMaterialProperties.metallicMapKey);
-            InitializeIcon(m_RoughnessMapPreviewButton, MuseMaterialProperties.roughnessMapKey);
+            InitializeIcon(m_SmoothnessMapPreviewButton, MuseMaterialProperties.smoothnessMapKey);
             InitializeIcon(m_AOMapPreviewButton, MuseMaterialProperties.ambientOcclusionMapKey);
         }
 
@@ -222,9 +222,9 @@ namespace Unity.Muse.Texture
             SelectItem(MaterialPreviewItem.MetallicMap);
         }
 
-        private void OnRoughnessPreviewClicked()
+        private void OnSmoothnessPreviewClicked()
         {
-            SelectItem(MaterialPreviewItem.RoughnessMap);
+            SelectItem(MaterialPreviewItem.SmoothnessMap);
         }
         
         private void OnAOPreviewClicked()
@@ -239,7 +239,7 @@ namespace Unity.Muse.Texture
             m_DiffuseMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.BaseMap); 
             m_HeightMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.HeightMap);
             m_MetallicMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.MetallicMap);
-            m_RoughnessMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.RoughnessMap);
+            m_SmoothnessMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.SmoothnessMap);
             m_AOMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.AOMap);
         }
     }

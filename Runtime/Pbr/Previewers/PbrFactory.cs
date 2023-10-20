@@ -9,16 +9,16 @@ using UnityEngine.Networking;
 
 namespace Unity.Muse.Texture
 {
-    public class PbrFactory
+    internal class PbrFactory
     {
         public event Action<Material, ProcessedPbrMaterialData> OnMaterialCreated;
         public event Action<float> OnProgress;
 
         PbrMapGeneratorJob m_CurrentMapGenerationJob;
         UnityWebRequestAsyncOperation m_CurrentDiffuseGenerationRequest;
-        
+
         readonly List<PbrMaterialData> m_PbrMaterialData;
-        
+
         ProcessedPbrMaterialData m_CurrentProcessedData;
 
         public PbrFactory(List<PbrMaterialData> viewModel)
@@ -51,7 +51,7 @@ namespace Unity.Muse.Texture
                 data.HeightmapSourceArtifact,
                 data.NormalMapSourceArtifact,
                 data.MetallicMapSourceArtifact,
-                data.RoughnessMapSourceArtifact);
+                data.SmoothnessMapSourceArtifact);
 
 
             OnProgress?.Invoke(0f);
@@ -101,15 +101,15 @@ namespace Unity.Muse.Texture
             currentMaterialData.MetallicMapSourceArtifact = materialData.MetallicMap;
             currentMaterialData.HeightmapSourceArtifact = materialData.HeightmapMap;
             currentMaterialData.NormalMapSourceArtifact = materialData.NormalMap;
-            currentMaterialData.RoughnessMapSourceArtifact = materialData.RoughnessMap;
+            currentMaterialData.SmoothnessMapSourceArtifact = materialData.SmoothnessMap;
             m_CurrentProcessedData.BaseMap = materialData.BaseMap;
             m_CurrentProcessedData.BaseMapPNGData = materialData.BaseMapPNGData;
             m_CurrentProcessedData.NormalMap = materialData.NormalMap;
             m_CurrentProcessedData.NormalMapPNGData = materialData.NormalMapPNGData;
             m_CurrentProcessedData.MetallicMap = materialData.MetallicMap;
             m_CurrentProcessedData.MetallicMapPNGData = materialData.MetallicMapPNGData;
-            m_CurrentProcessedData.RoughnessMap = materialData.RoughnessMap;
-            m_CurrentProcessedData.RoughnessMapPNGData = materialData.RoughnessMapPNGData;
+            m_CurrentProcessedData.SmoothnessMap = materialData.SmoothnessMap;
+            m_CurrentProcessedData.SmoothnessMapPNGData = materialData.SmoothnessMapPNGData;
             m_CurrentProcessedData.HeightmapMap = materialData.HeightmapMap;
             m_CurrentProcessedData.HeightmapPNGData = materialData.HeightmapPNGData;
 
@@ -125,13 +125,13 @@ namespace Unity.Muse.Texture
                 OnMaterialCreated?.Invoke(null, new ProcessedPbrMaterialData());
                 return;
             }
-            
+
             var currentMaterialData =
                 m_PbrMaterialData.First(data => data.BaseMapSourceArtifact.Guid == m_CurrentMapGenerationJob.BaseMapArtifact.Guid);
-            
+
             currentMaterialData.DiffuseMapSourceArtifact = new ImageArtifact(response.guid, uint.MinValue);
             m_CurrentProcessedData.DiffuseMap = currentMaterialData.DiffuseMapSourceArtifact;
-            
+
             m_CurrentProcessedData.DiffuseMap.GetArtifact((_, rawData, message) =>
             {
                 if (!string.IsNullOrEmpty(message))
@@ -141,14 +141,14 @@ namespace Unity.Muse.Texture
                     OnMaterialCreated?.Invoke(null, new ProcessedPbrMaterialData());
                     return;
                 }
-                
-                m_CurrentProcessedData.DiffuseMapPNGData = rawData; 
+
+                m_CurrentProcessedData.DiffuseMapPNGData = rawData;
                 EvaluateJobsCompleteness();
 
-                
+
             }, false);
         }
-        
+
         void OnPBRJobProgressChanged(float obj)
         {
             OnProgress?.Invoke(obj * 100f);
@@ -157,18 +157,18 @@ namespace Unity.Muse.Texture
         public void CancelCurrentGeneration()
         {
             m_CurrentProcessedData = new ProcessedPbrMaterialData();
-            
+
             if (m_CurrentDiffuseGenerationRequest != null)
             {
                 if (!m_CurrentDiffuseGenerationRequest.isDone)
                 {
                     m_CurrentDiffuseGenerationRequest?.webRequest?.Abort();
-                    m_CurrentDiffuseGenerationRequest?.webRequest?.Dispose(); 
+                    m_CurrentDiffuseGenerationRequest?.webRequest?.Dispose();
                 }
-                
+
                 m_CurrentDiffuseGenerationRequest = null;
             }
-            
+
             if (m_CurrentMapGenerationJob != null)
             {
                 m_CurrentMapGenerationJob.Completed -= OnPBRMapRequestCompleted;
@@ -179,15 +179,15 @@ namespace Unity.Muse.Texture
 
         public void EvaluateJobsCompleteness()
         {
-           if(!m_CurrentDiffuseGenerationRequest.isDone || m_CurrentMapGenerationJob.IsRunning)
+           if(m_CurrentDiffuseGenerationRequest == null || !m_CurrentDiffuseGenerationRequest.isDone || m_CurrentMapGenerationJob.IsRunning)
                return;
-           
+
            PbrDataCache.Write(m_CurrentProcessedData);
-           
+
            var newMaterial = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
 
            MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(m_CurrentProcessedData, newMaterial, false);
-            
+
            OnMaterialCreated?.Invoke(newMaterial, m_CurrentProcessedData);
            CancelCurrentGeneration();
         }

@@ -6,7 +6,7 @@ namespace Unity.Muse.Texture
     /// <summary>
     /// Properties used for the Muse Material Shader Graph
     /// </summary>
-    public static class MuseMaterialProperties
+    internal static class MuseMaterialProperties
     {
         //Maps
         /// <summary>
@@ -22,9 +22,9 @@ namespace Unity.Muse.Texture
         /// </summary>
         public static readonly int metallicMapKey = Shader.PropertyToID("_MetallicMap");
         /// <summary>
-        /// Key for roughness map
+        /// Key for smoothness map
         /// </summary>
-        public static readonly int roughnessMapKey = Shader.PropertyToID("_RoughnessMap");
+        public static readonly int smoothnessMapKey = Shader.PropertyToID("_SmoothnessMap");
         /// <summary>
         /// Key for height map
         /// </summary>
@@ -68,7 +68,7 @@ namespace Unity.Muse.Texture
         /// <summary>
         /// Key for roughness value 
         /// </summary>
-        public static readonly int roughnessIntensity = Shader.PropertyToID("_RoughnessIntensity");
+        public static readonly int smoothnessIntensity = Shader.PropertyToID("_SmoothnessIntensity");
         
         /// <summary>
         /// Using vertex displacement

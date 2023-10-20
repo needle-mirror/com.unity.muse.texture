@@ -1,13 +1,13 @@
 namespace Unity.Muse.Common
 {
-    public enum PBRMapTypes
+    internal enum PBRMapTypes
     {
         BaseMap,
         Height,
         Normal,
         Metallic,
         Emission,
-        Roughness,
+        Smoothness,
         AO
     }
 }

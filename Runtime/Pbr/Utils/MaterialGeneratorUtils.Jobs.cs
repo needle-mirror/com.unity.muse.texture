@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Texture
 {
-    public static partial class MaterialGeneratorUtils
+    internal static partial class MaterialGeneratorUtils
     {
         [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
         struct ConvertTextToDxtnmJob : IJobParallelFor

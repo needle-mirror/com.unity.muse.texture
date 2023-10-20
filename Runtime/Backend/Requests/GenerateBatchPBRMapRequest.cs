@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public sealed class GenerateBatchPBRMapRequest : GuidItemRequest
+    internal sealed class GenerateBatchPBRMapRequest : GuidItemRequest
     {
         public string[] map_types;
 

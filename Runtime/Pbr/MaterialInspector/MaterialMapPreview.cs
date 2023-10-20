@@ -64,8 +64,8 @@ namespace Unity.Muse.Texture
                 case MaterialPreviewItem.MetallicMap:
                     RenderMap(MuseMaterialProperties.metallicMapKey);
                     break;
-                case MaterialPreviewItem.RoughnessMap:
-                    RenderMap(MuseMaterialProperties.roughnessMapKey);
+                case MaterialPreviewItem.SmoothnessMap:
+                    RenderMap(MuseMaterialProperties.smoothnessMapKey);
                     break;
                 case MaterialPreviewItem.HeightMap:
                     RenderMap(MuseMaterialProperties.heightMapKey);

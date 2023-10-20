@@ -1,10 +1,15 @@
 using System;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    public class MaterialPreviewElement : VisualElement
+    internal class MaterialPreviewElement : VisualElement
     {
         protected internal readonly Image m_PreviewImage;
         readonly Vector2Int k_PreviewSize = new(2048, 2048);
@@ -41,7 +46,22 @@ namespace Unity.Muse.Texture
 
             s_MaterialPreviewer ??= new MaterialPreviewer();
             m_PreviewImage.image = s_MaterialPreviewer.CreateDefaultRenderTexture();
+            
+            #if UNITY_EDITOR
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            #endif
         }
+
+        #if UNITY_EDITOR
+        private void OnBeforeAssemblyReload()
+        {
+            if (s_MaterialPreviewer == null)
+                return;
+            
+            s_MaterialPreviewer.Dispose();
+            s_MaterialPreviewer = null;
+        }
+        #endif
 
 
         protected void SetMaterial(Material material)

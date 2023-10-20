@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using Unity.Muse.Common;
 using Unity.Muse.Texture.Analytics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Texture
 {
     [Serializable]
-    public sealed class ImageArtifact : SimpleImageArtifact, IGenerateArtifact, IVariateArtifact, IInpaintArtifact, IUpscaleArtifact
+    internal sealed class ImageArtifact : SimpleImageArtifact, IGenerateArtifact, IVariateArtifact, IInpaintArtifact, IUpscaleArtifact
     {
         internal bool IsPbrMode = false;
 
         /// <summary>
         /// Material meta data for the generated material
         /// </summary>
-        public MaterialData MaterialMetaData;
+        internal MaterialData MaterialMetaData;
 
         public ImageArtifact(string guid, uint seed)
             : base(guid, seed) { }
@@ -262,7 +263,7 @@ namespace Unity.Muse.Texture
         /// Meta data associated with Generated Materials
         /// </summary>
         [System.Serializable]
-        public class MaterialData
+        internal class MaterialData
         {
             /// <summary>
             /// if the material data has been initialized with default values
@@ -302,9 +303,9 @@ namespace Unity.Muse.Texture
             /// </summary>
             public float metallic;
             /// <summary>
-            /// roughness value for the material
+            /// smoothness value for the material
             /// </summary>
-            public float roughness;
+            [FormerlySerializedAs("roughness")] public float smoothness;
 
             /// <summary>
             /// value if it was initialized with default values
@@ -330,7 +331,7 @@ namespace Unity.Muse.Texture
                 useDisplacement = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_UseDisplacement")) == 1.0f;
                 height = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_HeightIntensity"));
                 metallic = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_MetallicIntensity"));
-                roughness = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_RoughnessIntensity"));
+                smoothness = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex("_SmoothnessIntensity"));
             }
 
             public void GetValuesFromMaterial(Material material)
@@ -343,7 +344,7 @@ namespace Unity.Muse.Texture
                 useDisplacement = material.GetFloat(MuseMaterialProperties.useDisplacement) == 1.0f;
                 height = material.GetFloat(MuseMaterialProperties.heightIntensity);
                 metallic = material.GetFloat(MuseMaterialProperties.metallicIntensity);
-                roughness = material.GetFloat(MuseMaterialProperties.roughnessIntensity);
+                smoothness = material.GetFloat(MuseMaterialProperties.smoothnessIntensity);
             }
             public void ApplyToMaterial(Material material)
             {
@@ -355,7 +356,7 @@ namespace Unity.Muse.Texture
                 material.SetFloat(MuseMaterialProperties.useDisplacement, useDisplacement ? 1.0f : 0.0f);
                 material.SetFloat(MuseMaterialProperties.heightIntensity, height);
                 material.SetFloat(MuseMaterialProperties.metallicIntensity, metallic);
-                material.SetFloat(MuseMaterialProperties.roughnessIntensity, roughness);
+                material.SetFloat(MuseMaterialProperties.smoothnessIntensity, smoothness);
             }
         }
     }

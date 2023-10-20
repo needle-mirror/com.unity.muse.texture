@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    public class FactorSliderFloat : TouchSliderFloat
+    internal class FactorSliderFloat : TouchSliderFloat
     {
         private LocalizedTextElement m_ValueLabel;
 

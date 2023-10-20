@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Texture.Editor
 {
-    public class MaterialExporter
+    internal class MaterialExporter
     {
         [InitializeOnLoadMethod]
         static void MaterialExportRegister()
@@ -37,14 +37,14 @@ namespace Unity.Muse.Texture.Editor
             var diffuseMap = SaveAndLoadTexture2D("diffuseMap", materialData.DiffuseMapPNGData, materialAsset);
             var normalMap = SaveAndLoadTexture2D("normalMap", materialData.NormalMapPNGData, materialAsset, true);
             var metallicMap = SaveAndLoadTexture2D("metallicMap", materialData.MetallicMapPNGData, materialAsset);
-            var roughnessMap = SaveAndLoadTexture2D("roughnessMap", materialData.RoughnessMapPNGData, materialAsset);
+            var smoothnessMap = SaveAndLoadTexture2D("smoothnessMap", materialData.SmoothnessMapPNGData, materialAsset);
             var heightMap = SaveAndLoadTexture2D("heightMap", materialData.HeightmapPNGData, materialAsset);
             var aoMap = SaveAndLoadTexture2D("ambientOcclusionMap", materialData.AOMapPNGData, materialAsset);
 
             materialAsset.SetTexture(MuseMaterialProperties.baseMapKey, diffuseMap);
             materialAsset.SetTexture(MuseMaterialProperties.normalMapKey, normalMap);
             materialAsset.SetTexture(MuseMaterialProperties.metallicMapKey, metallicMap);
-            materialAsset.SetTexture(MuseMaterialProperties.roughnessMapKey, roughnessMap);
+            materialAsset.SetTexture(MuseMaterialProperties.smoothnessMapKey, smoothnessMap);
             materialAsset.SetTexture(MuseMaterialProperties.heightMapKey, heightMap);
             materialAsset.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap);
 
@@ -129,7 +129,7 @@ namespace Unity.Muse.Texture.Editor
             }
             material.SetFloat(MuseMaterialProperties.heightIntensity, imageArtifact.MaterialMetaData.height);
             material.SetFloat(MuseMaterialProperties.metallicIntensity, imageArtifact.MaterialMetaData.metallic);
-            material.SetFloat(MuseMaterialProperties.roughnessIntensity, imageArtifact.MaterialMetaData.roughness);
+            material.SetFloat(MuseMaterialProperties.smoothnessIntensity, imageArtifact.MaterialMetaData.smoothness);
         }
     }
 }

@@ -26,6 +26,7 @@ namespace Unity.Muse.Texture
         HDAdditionalReflectionData m_ReflectionProbeAdditionalData;
         VolumeProfile m_VolumeProfile;
         HDRISky m_HdriSky;
+        VisualEnvironment m_VisualEnvironment;
 #endif
 
         public Scene Scene => m_Scene;
@@ -75,10 +76,9 @@ namespace Unity.Muse.Texture
             var toneMapping = m_VolumeProfile.Add<Tonemapping>();
             toneMapping.mode.Override(TonemappingMode.None);
             
-            var visualEnvironment = m_VolumeProfile.Add<VisualEnvironment>();
-            visualEnvironment.skyType.Override((int)SkyType.HDRI);
-            visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
-            
+            m_VisualEnvironment = m_VolumeProfile.Add<VisualEnvironment>();
+            m_VisualEnvironment.skyType.Override((int)SkyType.HDRI);
+            m_VisualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
             
             AddGameObject(volume.gameObject);
 #else
@@ -87,9 +87,10 @@ namespace Unity.Muse.Texture
                 hideFlags = HideFlags.DontSave
             };
 #endif
-
+            
             AddGameObject(previewCamera);
             m_Camera = previewCamera.GetComponent<Camera>();
+            m_Camera.targetDisplay = -1;
             m_Camera.enabled = false;
             m_Camera.clearFlags = CameraClearFlags.Depth;
             m_Camera.fieldOfView = 15f;
@@ -126,9 +127,7 @@ namespace Unity.Muse.Texture
             cameraHighDefData.probeLayerMask = LayerMask.GetMask(LayerManager.MuseLayerName);
             cameraHighDefData.volumeLayerMask = LayerMask.GetMask(LayerManager.MuseLayerName);
 
-            m_Camera.enabled = true;
             //TODO: What other HDRP render features?
-            
 #endif
         }
 
@@ -184,7 +183,7 @@ namespace Unity.Muse.Texture
             var reflectionCubemap = HdriProvider.GetHdri(m_CurrentHdriEnvironment.Value); 
             
 #if !HDRP_PIPELINE_ENABLED
-            m_RenderSettingsData.skybox = new Material(Shader.Find("Skybox/Cubemap"))
+            m_RenderSettingsData.skybox ??= new Material(Shader.Find("Skybox/Cubemap"))
             {
                 hideFlags = HideFlags.DontSave
             };
@@ -227,7 +226,6 @@ namespace Unity.Muse.Texture
 #if HDRP_PIPELINE_ENABLED
             m_HdriSky.hdriSky.Override(reflectionCubemap);
             m_ReflectionProbeAdditionalData.customTexture = reflectionCubemap;
-            m_ReflectionProbeAdditionalData.RequestRenderNextUpdate();
 #endif
         }
         

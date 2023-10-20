@@ -1,4 +1,5 @@
 using System;
+using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 #if HDRP_PIPELINE_ENABLED
@@ -9,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Muse.Texture
 {
-    public class MaterialPreviewer : IDisposable
+    internal class MaterialPreviewer : IDisposable
     {
         MaterialPreviewSceneHandler m_SceneHandler;
 
@@ -50,6 +51,10 @@ namespace Unity.Muse.Texture
             var position = rotation * negDistance + m_SceneHandler.MaterialTarget.transform.parent.position;
 
             var camera = m_SceneHandler.Camera;
+            
+#if HDRP_PIPELINE_ENABLED
+            camera.enabled = true;
+#endif
 
             var transform = camera.transform;
             transform.position = position;
@@ -64,7 +69,7 @@ namespace Unity.Muse.Texture
                     Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 2.0);
             camera.Render();
             camera.fieldOfView = fieldOfView;
-
+            
 #if !HDRP_PIPELINE_ENABLED
             currentRenderSettings.ApplyCurrentSettings();
             DynamicGI.UpdateEnvironment();
@@ -76,11 +81,11 @@ namespace Unity.Muse.Texture
             var colorFormat = m_SceneHandler.Camera.allowHDR
                 ? GraphicsFormat.R16G16B16A16_SFloat
                 : GraphicsFormat.R8G8B8A8_UNorm;
-            return new RenderTexture(width, height, colorFormat,
-                SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil))
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
+            var rt = new RenderTexture(width, height, colorFormat,
+                SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
+            ObjectUtils.Retain(rt);
+            
+            return rt;
         }
 
         public void Dispose()

@@ -3,7 +3,7 @@ using System;
 namespace Unity.Muse.Common
 {
     [Serializable]
-    public class PBRMapGuids
+    internal class PBRMapGuids
     {
         public string emission;
         public string height;

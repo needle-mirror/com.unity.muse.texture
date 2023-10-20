@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Texture.Editor
 {
-    public class MuseAssetCreation : UnityEditor.ProjectWindowCallback.EndNameEditAction
+    internal class MuseAssetCreation : UnityEditor.ProjectWindowCallback.EndNameEditAction
     {
         const string k_MuseTextureModeKey = "TextToImage";
 

@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace Unity.Muse.Texture.Editor
 {
-    public static class WindowMenuItem
+    internal static class WindowMenuItem
     {
         const string k_MuseTextureModeKey = "TextToImage";
 

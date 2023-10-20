@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 namespace Unity.Muse.Texture
 {
-    public class CreateBatchPbrMapJob
+    internal class CreateBatchPbrMapJob
     {
         public bool IsDone { get; private set; }
         public bool IsCancelled { get; private set; }

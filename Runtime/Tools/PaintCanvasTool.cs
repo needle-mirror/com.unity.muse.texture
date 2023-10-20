@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    public class PaintCanvasTool: ICanvasTool
+    internal class PaintCanvasTool: ICanvasTool
     {
         Model m_CurrentModel;
         PaintCanvasToolManipulator m_CurrentManipulator;
@@ -69,7 +69,7 @@ namespace Unity.Muse.Texture
         {
             if (artifact is ImageArtifact imageArtifact)
             {
-                return m_CurrentModel.isRefineMode && !imageArtifact.IsPbrMode;
+                return m_CurrentModel.isRefineMode && !imageArtifact.IsPbrMode && ArtifactCache.IsInCache(artifact);
             }
             return m_CurrentModel.isRefineMode;
         }

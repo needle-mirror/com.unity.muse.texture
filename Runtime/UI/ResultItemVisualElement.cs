@@ -319,7 +319,7 @@ namespace Unity.Muse.Texture
                         artifacts.Add(pbrMaterialData.MetallicMapSourceArtifact);
                         artifacts.Add(pbrMaterialData.HeightmapSourceArtifact);
                         artifacts.Add(pbrMaterialData.NormalMapSourceArtifact);
-                        artifacts.Add(pbrMaterialData.RoughnessMapSourceArtifact);
+                        artifacts.Add(pbrMaterialData.SmoothnessMapSourceArtifact);
                     }
                 }
 

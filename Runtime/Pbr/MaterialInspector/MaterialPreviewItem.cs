@@ -7,7 +7,7 @@ namespace Unity.Muse.Texture
         BaseMap,
         NormalMap,
         MetallicMap,
-        RoughnessMap,
+        SmoothnessMap,
         HeightMap,
         AOMap
     }

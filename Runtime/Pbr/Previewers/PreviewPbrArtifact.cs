@@ -116,6 +116,8 @@ namespace Unity.Muse.Texture
                 return;
             }
             
+            ObjectUtils.Retain(material);
+            
             m_CurrentArtifact.MaterialMetaData.ApplyToMaterial(material); 
 
             m_CurrentMaterial = material;

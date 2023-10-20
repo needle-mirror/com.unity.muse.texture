@@ -8,7 +8,7 @@ using UnityEngine.Pool;
 
 namespace Unity.Muse.Texture
 {
-    public class PbrMapGeneratorJob : IDisposable
+    internal class PbrMapGeneratorJob : IDisposable
     {
         public delegate void MaterialGenerationCompleteDelegate(bool success, ProcessedPbrMaterialData materialData);
 
@@ -27,14 +27,14 @@ namespace Unity.Muse.Texture
             PBRMapTypes.Metallic,
             PBRMapTypes.Normal,
             PBRMapTypes.BaseMap,
-            PBRMapTypes.Roughness,
+            PBRMapTypes.Smoothness,
         };
 
         readonly ImageArtifact m_BaseMapSourceArtifact;
         readonly ImageArtifact m_HeightmapSourceArtifact;
         readonly ImageArtifact m_NormalMapSourceArtifact;
         readonly ImageArtifact m_MetallicSourceArtifact;
-        readonly ImageArtifact m_RoughnessSourceArtifact;
+        readonly ImageArtifact m_SmoothnessSourceArtifact;
 
         List<CreateBatchPbrMapJob> m_BatchJobs;
 
@@ -45,14 +45,14 @@ namespace Unity.Muse.Texture
                                 ImageArtifact heightmapSourceArtifact,
                                 ImageArtifact normalMapSourceArtifact,
                                 ImageArtifact metallicSourceArtifact,
-                                ImageArtifact roughnessSourceArtifact)
+                                ImageArtifact smoothnessSourceArtifact)
         {
             m_BatchJobs = ListPool<CreateBatchPbrMapJob>.Get();
             m_BaseMapSourceArtifact = baseMapSourceArtifact;
             m_HeightmapSourceArtifact = heightmapSourceArtifact;
             m_NormalMapSourceArtifact = normalMapSourceArtifact;
             m_MetallicSourceArtifact = metallicSourceArtifact;
-            m_RoughnessSourceArtifact = roughnessSourceArtifact;
+            m_SmoothnessSourceArtifact = smoothnessSourceArtifact;
         }
 
         public void Start()
@@ -67,7 +67,7 @@ namespace Unity.Muse.Texture
                 {PBRMapTypes.BaseMap, m_BaseMapSourceArtifact},
                 {PBRMapTypes.Height, m_HeightmapSourceArtifact},
                 {PBRMapTypes.Metallic, m_MetallicSourceArtifact},
-                {PBRMapTypes.Roughness, m_RoughnessSourceArtifact}
+                {PBRMapTypes.Smoothness, m_SmoothnessSourceArtifact}
             };
 
             var batchJob = CreateBatchGenerateJobForMap(m_BaseMapSourceArtifact, mapTypes);
@@ -166,8 +166,8 @@ namespace Unity.Muse.Texture
                 NormalMapPNGData = rawArtifacts[PBRMapTypes.Normal],
                 MetallicMap = artifacts[PBRMapTypes.Metallic],
                 MetallicMapPNGData = rawArtifacts[PBRMapTypes.Metallic],
-                RoughnessMap = artifacts[PBRMapTypes.Roughness],
-                RoughnessMapPNGData = rawArtifacts[PBRMapTypes.Roughness],
+                SmoothnessMap = artifacts[PBRMapTypes.Smoothness],
+                SmoothnessMapPNGData = rawArtifacts[PBRMapTypes.Smoothness],
                 HeightmapMap = artifacts[PBRMapTypes.Height],
                 HeightmapPNGData = rawArtifacts[PBRMapTypes.Height]
             };

@@ -11,7 +11,7 @@ using UnityEngine.Scripting;
 namespace Unity.Muse.Texture.Editor
 {
     [Preserve]
-    public sealed class ImageArtifactDragAndDropHandler : IArtifactDragAndDropHandler
+    internal sealed class ImageArtifactDragAndDropHandler : IArtifactDragAndDropHandler
     {
         ImageArtifact m_ImageArtifact;
 

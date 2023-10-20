@@ -5,7 +5,7 @@ using Toggle = Unity.AppUI.UI.Toggle;
 
 namespace Unity.Muse.Texture
 {
-    public class PaintingManipulatorSettings
+    internal class PaintingManipulatorSettings
     {
         VisualElement m_Root;
         PaintingManipulator m_PaintingManipulator;

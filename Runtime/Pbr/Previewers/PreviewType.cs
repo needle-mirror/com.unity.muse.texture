@@ -1,6 +1,6 @@
 namespace Unity.Muse.Texture
 {
-    public enum PreviewType
+    internal enum PreviewType
     {
         PBR,
         Image

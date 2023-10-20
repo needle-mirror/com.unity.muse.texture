@@ -284,7 +284,7 @@ namespace Unity.Muse.Texture
                         MaterialPreviewItem.BaseMap => RenderMap(MuseMaterialProperties.baseMapKey),
                         MaterialPreviewItem.NormalMap => RenderMap(MuseMaterialProperties.normalMapKey),
                         MaterialPreviewItem.MetallicMap => RenderMap(MuseMaterialProperties.metallicMapKey),
-                        MaterialPreviewItem.RoughnessMap => RenderMap(MuseMaterialProperties.roughnessMapKey),
+                        MaterialPreviewItem.SmoothnessMap => RenderMap(MuseMaterialProperties.smoothnessMapKey),
                         MaterialPreviewItem.HeightMap => RenderMap(MuseMaterialProperties.heightMapKey),
                         MaterialPreviewItem.AOMap => RenderMap(MuseMaterialProperties.ambientOcclusionMapKey),
                         _ => throw new ArgumentOutOfRangeException()

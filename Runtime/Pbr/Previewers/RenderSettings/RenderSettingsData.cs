@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace Unity.Muse.Texture
 {
-    public class RenderSettingsData
+    internal class RenderSettingsData
     {
         public Color ambientEquatorColor;
         public Color ambientGroundColor;

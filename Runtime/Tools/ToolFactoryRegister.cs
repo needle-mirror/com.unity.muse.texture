@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Unity.Muse.Texture.Tools
 {
-    public static class ToolFactoryRegister
+    internal static class ToolFactoryRegister
     {
 #if !UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

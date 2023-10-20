@@ -6,7 +6,7 @@ namespace Unity.Muse.Texture
     /// <summary>
     /// Export handler for texture
     /// </summary>
-    public static class ExportHandler
+    internal static class ExportHandler
     {
         /// <summary>
         /// Event invoked when a material is exported with prompt

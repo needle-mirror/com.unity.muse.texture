@@ -28,7 +28,7 @@ namespace Unity.Muse.Texture
 
         private TouchSliderFloat m_HeightIntensityField;
         private TouchSliderFloat m_MetallicIntensityField;
-        private TouchSliderFloat m_RoughnessIntensityField;
+        private TouchSliderFloat m_SmoothnessIntensityField;
         
         public event Action OnMaterialPropertiesChanged;
 
@@ -213,9 +213,9 @@ namespace Unity.Muse.Texture
             
             mapsSection.Add(new FactorSliderFloat()
             {
-                name = "RoughnessIntensityField",
-                label = "Roughness",
-                tooltip = "Roughness intensity",
+                name = "SmoothnessIntensityField",
+                label = "Smoothness",
+                tooltip = "Smoothness intensity",
                 lowValue = 0f,
                 highValue = 3f,
                 value = 1f,
@@ -235,7 +235,7 @@ namespace Unity.Muse.Texture
             m_UseDisplacement = this.Q<Toggle>("UseDisplacementField");
             m_HeightIntensityField = this.Q<TouchSliderFloat>("HeightIntensityField");
             m_MetallicIntensityField = this.Q<TouchSliderFloat>("MetallicIntensityField");
-            m_RoughnessIntensityField = this.Q<TouchSliderFloat>("RoughnessIntensityField");
+            m_SmoothnessIntensityField = this.Q<TouchSliderFloat>("SmoothnessIntensityField");
             
             InitializePropertiesValues();
             RegisterPropertyChangeCallbacks();
@@ -254,7 +254,7 @@ namespace Unity.Muse.Texture
             m_UseDisplacement.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.useDisplacement) > 0.0);
             m_HeightIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.heightIntensity));
             m_MetallicIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.metallicIntensity));
-            m_RoughnessIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.roughnessIntensity));
+            m_SmoothnessIntensityField.SetValueWithoutNotify(m_Material.GetFloat(MuseMaterialProperties.smoothnessIntensity));
         }
 
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
@@ -271,7 +271,7 @@ namespace Unity.Muse.Texture
             m_UseDisplacement = null;
             m_HeightIntensityField = null; 
             m_MetallicIntensityField = null; 
-            m_RoughnessIntensityField = null; 
+            m_SmoothnessIntensityField = null; 
         }
 
         private void RegisterPropertyChangeCallbacks()
@@ -286,8 +286,8 @@ namespace Unity.Muse.Texture
             m_HeightIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_MetallicIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_MetallicIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
-            m_RoughnessIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
-            m_RoughnessIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
+            m_SmoothnessIntensityField.RegisterValueChangingCallback(evt => MaterialPropertiesChanged());
+            m_SmoothnessIntensityField.RegisterValueChangedCallback(evt => MaterialPropertiesChanged());
         }
 
         private void UnRegisterPropertyChangeCallbacks()
@@ -300,7 +300,7 @@ namespace Unity.Muse.Texture
             m_UseDisplacement.UnregisterValueChangedCallback(evt => MaterialPropertiesChanged());
             m_HeightIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
             m_MetallicIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
-            m_RoughnessIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
+            m_SmoothnessIntensityField.UnregisterValueChangingCallback(evt => MaterialPropertiesChanged());
         }
 
         private void SetPropertiesValues()
@@ -316,7 +316,7 @@ namespace Unity.Muse.Texture
             m_Material.SetFloat(MuseMaterialProperties.useDisplacement, m_UseDisplacement.value ? 1.0f : 0.0f);
             m_Material.SetFloat(MuseMaterialProperties.heightIntensity, m_HeightIntensityField.value);
             m_Material.SetFloat(MuseMaterialProperties.metallicIntensity, m_MetallicIntensityField.value);
-            m_Material.SetFloat(MuseMaterialProperties.roughnessIntensity, m_RoughnessIntensityField.value);
+            m_Material.SetFloat(MuseMaterialProperties.smoothnessIntensity, m_SmoothnessIntensityField.value);
         }
 
         public void SetMaterial(Material material)
