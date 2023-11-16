@@ -5,10 +5,12 @@ uid: get-started
 # Get started with Muse Texture Generator
 
 The Muse Texture Generator is a tool that uses machine learning to generate textures based on the prompt you enter. You can set the number of textures to generate. You can also apply the generated textures directly to objects in your **Scene** view.
+
 ## Launch the tool
 
+1. Install the `com.unity.muse.texture` package if you haven't done so. For instructions, refer to [Install a package from a registry by name](https://docs.unity3d.com/Manual/upm-ui-quick.html).
 1. From the menu, select **Muse** > **Muse Texture**.
-2. Resize the **Muse Generator** window until you can see all the UI.
+1. Resize the **Muse Generator** window until you can see all the UI.
 
 > [!TIP]
 > When possible, dock the **Muse Generator** window. This keeps you from losing the window and launching it multiple times.
@@ -18,7 +20,7 @@ The Muse Texture Generator is a tool that uses machine learning to generate text
 1. Enter a [prompt](xref:write-prompt).
 1. To set the number of textures to generate, move the **Images** slider or enter a number in the **Images** field.
 1. Select **Generate**. The textures appear in the **Generations** panel.
-1. To convert the generated textures to [PBR materials](xref:view-as-pbr), right-click on it and select **View as PBR**.
+1. To convert the generated textures to [PBR materials](xref:view-as-pbr), right-click on it and select **View as PBR Material**.
 
 ## Apply generated textures
 

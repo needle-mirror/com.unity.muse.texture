@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Muse.Common;
+using Unity.Muse.Common.Account;
+using Unity.Muse.Common.Baryon.UI.Manipulators;
+using Unity.Muse.Texture.Pbr.Cache;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -70,6 +73,13 @@ namespace Unity.Muse.Texture
                 return actions;
             }
 
+            actions.Add(new ContextMenuAction
+            {
+                id = (int)Actions.GenerationSettings,
+                label = "Generation Data",
+                enabled = !context.isMultiSelect
+            });
+
             var isUpscale = Artifact.GetOperators().Find(x => x is UpscaleOperator upscaleOperator && upscaleOperator.Enabled()) != null;
 
             if (CurrentModel.isRefineMode)
@@ -89,21 +99,15 @@ namespace Unity.Muse.Texture
                 });
             }
 
-            actions.Add(new ContextMenuAction
+            if (Artifact is ImageArtifact imageArtifact)
             {
-                id = (int)Actions.GenerationSettings,
-                label = "Generation Settings",
-                enabled = !context.isMultiSelect
-            });
-
-            if (Artifact is ImageArtifact)
-            {
-                var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
+                var changeStateStr = m_ActivePreviewState == PreviewType.Image ? "PBR Material" : "Image";
                 actions.Add(new ContextMenuAction
                 {
                     id = (int)Actions.SwitchPreview,
-                    label = context.isMultiSelect ? "Switch Preview" : $"View as {changeState.ToString()}",
-                    enabled = true,
+                    label = context.isMultiSelect ? "Switch Preview" : $"View as {changeStateStr}",
+                    enabled = AccountInfo.Instance.IsSubscribed ||
+                        (!AccountInfo.Instance.IsSubscribed && PbrDataCache.IsInCache(imageArtifact)),
                 });
             }
 
@@ -116,13 +120,19 @@ namespace Unity.Muse.Texture
 
             if (!isUpscale && Artifact is IVariateArtifact variateArtifact)
             {
-                var numVariations = m_Artifact.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
+                var numVariations = CurrentModel.CurrentOperators.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
+                var label = $"Create {numVariations} Variation";
+
+                if (numVariations > 1)
+                {
+                    label += "s";
+                }
 
                 actions.Add(new ContextMenuAction
                 {
                     id = (int)Actions.CreateVariations,
-                    label = $"Create {numVariations} Variations",
-                    enabled = true,
+                    label = label,
+                    enabled = AccountInfo.Instance.IsSubscribed,
                 });
             }
 
@@ -189,6 +199,44 @@ namespace Unity.Muse.Texture
                                 label = TextContent.starSingle
                             });
                         }
+
+                        if (IsLiked())
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.FeedbackLike,
+                                label = TextContent.removeLike
+                            });
+                        }
+                        else if(!IsLiked() && !IsDisliked())
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.FeedbackLike,
+                                label = TextContent.like
+                            });
+                        }
+
+                        if (IsDisliked())
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.Feedback,
+                                label = TextContent.removeDislike
+                            });
+                        }
+                        else if(!IsLiked() && !IsDisliked())
+                        {
+                            actions.Add(new ContextMenuAction
+                            {
+                                enabled = true,
+                                id = (int)Actions.Feedback,
+                                label = TextContent.dislike
+                            });
+                        }
                     }
 
                     if (!ShouldEditButtonBeVisible() && canRefine)
@@ -208,7 +256,7 @@ namespace Unity.Muse.Texture
                     {
                         id = (int)Actions.Upscale,
                         label = "Upscale",
-                        enabled = true,
+                        enabled = AccountInfo.Instance.IsSubscribed,
                     });
                 }
             }
@@ -244,6 +292,12 @@ namespace Unity.Muse.Texture
 
             switch (id)
             {
+                case Actions.FeedbackLike:
+                    CurrentModel.GetData<FeedbackManager>().ToggleLike(m_Artifact);
+                    break;
+                case Actions.Feedback:
+                    CurrentModel.GetData<FeedbackManager>().ToggleDislike(m_Artifact);
+                    break;
                 case Actions.SwitchPreview:
                     var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
                     SetCurrentState(changeState);

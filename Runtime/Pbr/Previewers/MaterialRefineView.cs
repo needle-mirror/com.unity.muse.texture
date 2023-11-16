@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AppUI.UI;
 using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
-using GridView = Unity.Muse.Common.GridView;
 
 namespace Unity.Muse.Texture
 {
@@ -20,19 +18,16 @@ namespace Unity.Muse.Texture
         private MaterialPreviewSettings m_MaterialPreviewSettings;
         private MaterialInspectorView m_MaterialInspectorView;
 
-        private ActionButton m_CloseButton;
-
         private NodesList m_NodesList;
-        private VisualElement m_Canvas;
-
-        private VisualElement m_ControlContent;
+        
+        VisualElement m_BottomCanvasContent;
 
         AssetsList m_AssetsList;
-        private GridView m_GridView;
+        private AppUI.UI.GridView m_GridView;
 
         public MaterialRefineView(Artifact artifact) : base(artifact)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("MaterialInspector"));
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.materialInspectorStyleSheet));
 
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
@@ -41,34 +36,22 @@ namespace Unity.Muse.Texture
 
         private void OnAttachToPanel(AttachToPanelEvent evt)
         {
-            m_Canvas = evt.destinationPanel.visualTree.Q("Canvas");
-            m_ControlContent = new VisualElement()
-            {
-                pickingMode = PickingMode.Ignore,
-                style =
-                {
-                    flexGrow = 1f
-                }
-            };
-
-            m_Canvas.Add(m_ControlContent);
+            m_BottomCanvasContent = evt.destinationPanel.visualTree.Q("control-top-content");
 
             m_MaterialPreviewSelector = new MaterialPreviewSelector();
-            m_ControlContent.Add(m_MaterialPreviewSelector);
-
-            m_ControlContent.Add(new VisualElement()
-            {
-                pickingMode = PickingMode.Ignore,
-                style =
-                {
-                    flexGrow = 1f
-                }
-            });
+            CurrentModel.AddToToolbar(m_MaterialPreviewSelector, 1, ToolbarPosition.Left);
 
             m_MaterialPreviewSettings = new MaterialPreviewSettings();
-            m_ControlContent.Add(m_MaterialPreviewSettings);
+            m_BottomCanvasContent.Add(m_MaterialPreviewSettings);
 
-            m_Preview = new Image();
+            m_Preview = new Image
+            {
+                style =
+                {
+                    flexGrow = 1
+                }
+            };
+            
             Add(m_Preview);
 
             m_GenericLoader = new GenericLoader(GenericLoader.State.Loading)
@@ -90,49 +73,35 @@ namespace Unity.Muse.Texture
             m_NodesList.parent.Add(m_MaterialInspectorView);
 
 
-            m_CloseButton = new ActionButton()
-            {
-                name = "CloseButton",
-                icon = "caret-left",
-                label = "Generations",
-            };
-
-            m_CloseButton.AddToClassList("muse-material-inspector--close-button");
-
-            m_MaterialInspectorView.hierarchy.Add(m_CloseButton);
-
             parent.style.backgroundColor = new Color(0f, 0f, 0f, 0f); //Removing the Background of the Node
 
             m_AssetsList = panel.visualTree.Q<AssetsList>();
-            m_GridView = m_AssetsList.Q<GridView>();
-            m_GridView.OnSelectionRefreshed += OnSelectionRefreshed;
+            m_GridView = m_AssetsList.Q<AppUI.UI.GridView>();
+            m_GridView.selectedIndicesChanged += OnSelectionRefreshed;
 
             RegisterTarget();
 
             m_MaterialPreviewSelector.OnPreviewSelected += OnPreviewSelected;
             m_MaterialPreviewSettings.OnTargetPrimitiveChanged += OnTargetPrimitiveChanged;
             m_MaterialPreviewSettings.OnHdriChanged += OnHdriChanged;
+            m_MaterialPreviewSettings.OnIntensityChanged += OnHdriIntensityChanged;
             m_MaterialInspectorView.OnMaterialPropertiesChanged += OnMaterialPropertiesChanged;
 
             CurrentModel.OnActiveToolChanged += OnActiveToolChanged;
 
-            m_CloseButton.clickable.clicked += OnCloseButtonClicked;
-
             UpdateView();
         }
 
-
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
-            m_GridView.OnSelectionRefreshed -= OnSelectionRefreshed;
+            m_GridView.selectedIndicesChanged -= OnSelectionRefreshed;
             m_MaterialPreviewSelector.OnPreviewSelected -= OnPreviewSelected;
             m_MaterialPreviewSettings.OnTargetPrimitiveChanged -= OnTargetPrimitiveChanged;
             m_MaterialPreviewSettings.OnHdriChanged -= OnHdriChanged;
+            m_MaterialPreviewSettings.OnIntensityChanged -= OnHdriIntensityChanged;
             m_MaterialInspectorView.OnMaterialPropertiesChanged -= OnMaterialPropertiesChanged;
 
-            m_CloseButton.clickable.clicked -= OnCloseButtonClicked;
-            m_MaterialInspectorView.hierarchy.Remove(m_CloseButton);
-            m_CloseButton = null;
+            m_MaterialPreviewSelector.parent.Remove(m_MaterialPreviewSelector);
 
             if (CurrentModel is not null)
                 CurrentModel.OnActiveToolChanged -= OnActiveToolChanged;
@@ -148,11 +117,10 @@ namespace Unity.Muse.Texture
             m_NodesList.style.display = DisplayStyle.Flex;
             m_NodesList = null;
 
-            m_ControlContent.Clear();
-            m_Canvas.Remove(m_ControlContent);
+            m_BottomCanvasContent.Remove(m_MaterialPreviewSettings);
+            m_MaterialPreviewSettings = null;
 
             m_MaterialPreviewSelector = null;
-            m_MaterialPreviewSettings = null;
 
             Remove(m_Preview);
             m_Preview = null;
@@ -163,18 +131,15 @@ namespace Unity.Muse.Texture
 
         private void OnSelectionRefreshed(IEnumerable<int> index)
         {
-            // Need to delay a frame since when gridview has a new selection, the related ArtifactView is not yet added to its children
-            schedule.Execute(() =>
-            {
-                UnRegisterTarget();
-                RegisterTarget();
-                UpdateView();
-            }).ExecuteLater(1);
+            UnRegisterTarget();
+            RegisterTarget();
+            UpdateView();
         }
 
         void RegisterTarget()
         {
-            m_TargetVe = (ResultItemVisualElement)m_AssetsList.GetView((Artifact)m_GridView.selectedItems.FirstOrDefault());
+            m_TargetVe =
+                (ResultItemVisualElement)m_AssetsList.GetView((Artifact)m_GridView.selectedItems.FirstOrDefault());
 
             if (m_TargetVe == null)
                 return;
@@ -218,6 +183,7 @@ namespace Unity.Muse.Texture
             {
                 imageArtifact.MaterialMetaData = new ImageArtifact.MaterialData(true);
             }
+
             imageArtifact.MaterialMetaData.GetValuesFromMaterial(m_TargetVe.Material);
         }
 
@@ -235,6 +201,10 @@ namespace Unity.Muse.Texture
 
         private void OnPreviewTypeChanged(PreviewType obj)
         {
+            if (obj == PreviewType.PBR && m_MaterialPreviewSelector.SelectedPreviewItem == MaterialPreviewItem.Artifact)
+            {
+                m_MaterialPreviewSelector.SelectItem(MaterialPreviewItem.Material, false);
+            }
             UpdateView();
         }
 
@@ -246,20 +216,23 @@ namespace Unity.Muse.Texture
                 return;
             }
 
-            m_GenericLoader.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.Loading || m_TargetVe.GetLoadingState() == GenericLoader.State.Error
+            m_GenericLoader.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.Loading ||
+                                            m_TargetVe.GetLoadingState() == GenericLoader.State.Error
                 ? DisplayStyle.Flex
                 : DisplayStyle.None;
             m_Preview.style.display = m_GenericLoader.style.display == DisplayStyle.Flex
                 ? DisplayStyle.None
                 : DisplayStyle.Flex;
 
+            m_MaterialPreviewSelector.SetMaterial(m_TargetVe.Material);
+            
             switch (m_TargetVe.ActivePreviewState)
             {
                 case PreviewType.PBR:
 
                     tooltip = "Click + Drag to rotate the model.";
 
-                    m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
+                    m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None 
                         ? DisplayStyle.Flex
                         : DisplayStyle.None;
                     m_MaterialInspectorView.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
@@ -268,8 +241,7 @@ namespace Unity.Muse.Texture
                     m_NodesList.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
                         ? DisplayStyle.None
                         : DisplayStyle.Flex;
-
-                    m_MaterialPreviewSelector.SetMaterial(m_TargetVe.Material);
+                    
                     m_MaterialPreviewSettings.SetMaterial(m_TargetVe.Material);
                     m_MaterialInspectorView.SetMaterial(m_TargetVe.Material);
 
@@ -280,7 +252,7 @@ namespace Unity.Muse.Texture
                     m_Preview.image = m_MaterialPreviewSelector.SelectedPreviewItem switch
                     {
                         MaterialPreviewItem.Material => m_TargetVe.PbrPreview.previewImage.image,
-                        MaterialPreviewItem.Artifact => RenderMap(MuseMaterialProperties.baseMapKey),
+                        MaterialPreviewItem.Artifact => m_TargetVe.PbrPreview.previewImage.image,
                         MaterialPreviewItem.BaseMap => RenderMap(MuseMaterialProperties.baseMapKey),
                         MaterialPreviewItem.NormalMap => RenderMap(MuseMaterialProperties.normalMapKey),
                         MaterialPreviewItem.MetallicMap => RenderMap(MuseMaterialProperties.metallicMapKey),
@@ -289,12 +261,14 @@ namespace Unity.Muse.Texture
                         MaterialPreviewItem.AOMap => RenderMap(MuseMaterialProperties.ambientOcclusionMapKey),
                         _ => throw new ArgumentOutOfRangeException()
                     };
+                    CurrentModel.SetLeftOverlay(m_MaterialInspectorView);
                     break;
 
                 case PreviewType.Image:
                     SetImageView();
                     m_Preview.image = m_TargetVe.ImagePreview;
                     m_MaterialPreviewSelector.SelectItem(MaterialPreviewItem.Artifact, false);
+                    CurrentModel.SetLeftOverlay(m_NodesList.content);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -323,6 +297,11 @@ namespace Unity.Muse.Texture
         private void OnHdriChanged(HdriEnvironment environment)
         {
             m_TargetVe.PbrPreview.SetHdriEnvironment(environment);
+        }
+        
+        private void OnHdriIntensityChanged(float intensity)
+        {
+            m_TargetVe.PbrPreview.SetHdriIntensity(intensity);
         }
 
         private void OnTargetPrimitiveChanged(PrimitiveObjectTypes obj)

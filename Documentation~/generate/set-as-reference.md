@@ -22,11 +22,14 @@ To import other images:
 
 ## Generate based on color
 
-You can generate textures with a matching color of the reference image.
+You can generate textures that match the color of a reference image or a reference color.
 
-1. In the **Input Image** panel, import a reference image.
-1. Select **Color**.
-1. To control how closely the generated textures follow the color of the referenced image, move the **Strength** slider. Higher values result in closer color matching.
+1. In the **Input Image** panel, select the **Color** tab.
+1. Do the following:
+
+    - To use a reference image, import the image.
+    - To use a reference color, use the **Color picker** to set a color.
+1. To control how closely the generated textures follow the reference color, move the **Strength** slider. Higher values result in closer color matching.
 1. In the **Prompt** field, write a prompt that describes the texture you want to generate.
 1. In the **Negative Prompt** field, write a prompt that describes the elements to exclude from the generated textures.
 1. To set the number of images to generate, move the **Images** slider.
@@ -34,24 +37,18 @@ You can generate textures with a matching color of the reference image.
 
 ## Generate based on shape
 
-You can generate textures that resemble the shape of the reference image.
+You can generate textures that resemble the shape of a pattern. A pattern, in this context, is a black and white image that has a repeatable design. The resulting textures maintain a unified appearance influenced by the white portions of the pattern image.
 
-1. In the **Input Image** panel, import a reference image.
-1. Select **Shape**.
-1. To control how closely the generated textures follow the shape of the referenced image, move the **Tightness** slider. Higher values result in closer shape resemblance.
-1. In the **Prompt** field, write a prompt that describes the texture you want to generate.
-1. In the **Negative Prompt** field, write a prompt that describes the elements to exclude from the generated textures.
-1. To set the number of images to generate, move the **Images** slider.
-1. Select **Generate**. The generated textures appear in the **Generations** panel.
+You can use a pattern provided by the tool or import a [canny](https://en.wikipedia.org/wiki/Canny_edge_detector) image. 
 
-## Generate based on pattern
+> [!NOTE]
+> A canny image is a black and white image that has been processed to highlight the edges of objects. If you use a canny image, ensure that the lines align with pixels. If the image is blurry, it might not work well.
 
-A pattern is an image that contains a repeatable design in black and white. You can generate a texture with a cohesive look based on the white areas of the pattern image.
+1. In the **Input Image** panel, select the **Shape** tab.
+1. Do the following:
 
-1. In the **Input Image** panel, select **Shape**.
-1. Select **Patterns**. A list of patterns appears.
-1. Select a pattern from the list. The pattern appears in the **Input Image** panel.
-1. To set how closely the generated textures follow the pattern, move the **Tightness** slider. Higher values result in closer pattern cohesion.
+    - To use a reference pattern, select **Patterns** and select a pattern from the list. 
+    - To use a canny image, import the image.
 1. In the **Prompt** field, write a prompt that describes the texture you want to generate.
 1. In the **Negative Prompt** field, write a prompt that describes the elements to exclude from the generated textures.
 1. To set the number of images to generate, move the **Images** slider.

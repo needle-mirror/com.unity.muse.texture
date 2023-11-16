@@ -1,4 +1,5 @@
 using System;
+using Unity.Muse.Common;
 using UnityEngine;
 
 namespace Unity.Muse.Texture
@@ -11,16 +12,16 @@ namespace Unity.Muse.Texture
             switch (primitiveType)
             {
                 case PrimitiveObjectTypes.Sphere:
-                    path = "PreviewSphere";
+                    path = PackageResources.spherePreviewModel;
                     break; 
                 case PrimitiveObjectTypes.Cube:
-                    path = "PreviewCube";
+                    path = PackageResources.cubePreviewModel;
                     break;
                 case PrimitiveObjectTypes.Plane:
-                    path = "PreviewPlane";
+                    path = PackageResources.planePreviewModel;
                     break;
                 case PrimitiveObjectTypes.Cylinder:
-                    path = "PreviewCylinder";
+                    path = PackageResources.cylinderPreviewModel;
                     break;
                 case PrimitiveObjectTypes.Custom:
                     #if UNITY_EDITOR
@@ -31,7 +32,7 @@ namespace Unity.Muse.Texture
                     throw new ArgumentOutOfRangeException(nameof(primitiveType), primitiveType, null);
             }
 
-            return GameObject.Instantiate( Resources.Load<GameObject>(path));
+            return GameObject.Instantiate( ResourceManager.Load<GameObject>(path));
         }
     }
 }

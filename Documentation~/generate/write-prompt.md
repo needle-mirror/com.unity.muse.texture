@@ -24,9 +24,10 @@ If color is important, mention the color palette you're interested in, such as `
 
 ## Exclude elements from the generated textures
 
-To exclude specific elements from generated textures, in the **Negative Prompt**, enter keywords that describe the elements to exclude.
+To exclude specific elements from generated textures, in the **Negative Prompt**, enter keywords that describe the elements to exclude. The keyword can be a color, shape, or texture type. 
 
-The keyword can be a color, shape, or texture type. For example, if you want to generate flower textures, but you don’t want red flowers, enter `red` into the **Negative Prompt** field.
+> [!IMPORTANT]
+> To avoid double negative, don't use `no` in the **Negative Prompt**. For example, if you want to generate blue tiles and you don’t want white tiles in it, In the **Prompt**, enter `blue tiles`. In the **Negative Prompt**, enter `white tiles` not `no white tiles`.
 
 To ensure the separation of concepts, enter multiple keywords separated by commas.
 

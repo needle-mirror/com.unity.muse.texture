@@ -11,6 +11,7 @@ The following table describes the keyboard shortcuts for the **Muse Texture** to
 | <kbd>Shift</kbd> **+** click and drag | Rotates the PBR. |
 | <kbd>Ctrl</kbd> (macOS:<kbd>Cmd</kbd>) + click | Selects multiple images in the  **Generations** panel. |
 | <kbd>Delete</kbd> | Deletes the selected textures or materials from the *Generations** panel. |
+| <kbd>Ctrl</kbd> (macOS:<kbd>Cmd</kbd>) + z | Undoes the last action made when you are painting on the **Refinements** canvas. |
 
 ## Additional resources
 

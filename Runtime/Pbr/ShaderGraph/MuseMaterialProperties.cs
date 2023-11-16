@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting;
 
 namespace Unity.Muse.Texture
 {
@@ -12,7 +13,7 @@ namespace Unity.Muse.Texture
         /// <summary>
         /// Key for base map
         /// </summary>
-        public static readonly int baseMapKey = Shader.PropertyToID("_BaseMap");
+        public static readonly int baseMapKey = Shader.PropertyToID("_AlbedoMap");
         /// <summary>
         /// Key for normal map
         /// </summary>
@@ -73,7 +74,17 @@ namespace Unity.Muse.Texture
         /// <summary>
         /// Using vertex displacement
         /// </summary>
-        public static readonly int useDisplacement = Shader.PropertyToID("_UseDisplacement");
+        public static readonly int useDisplacement = Shader.PropertyToID("_VertexDisplacement");
+        
+        /// <summary>
+        /// Using Metallic map
+        /// </summary>
+        public static readonly int useMetallic = Shader.PropertyToID("_UseMetallicMap");
+        
+        /// <summary>
+        /// Using Smoothness map
+        /// </summary>
+        public static readonly int useSmoothness = Shader.PropertyToID("_UseSmoothnessMap");
         
         /// <summary>
         /// Enabling HDRP keyword for the Muse Material Shader Graph
@@ -83,6 +94,7 @@ namespace Unity.Muse.Texture
 #else
         [RuntimeInitializeOnLoadMethod]
 #endif
+        [Preserve]
         public static void EnableShaderKeywords()
         {
             GlobalKeyword.Create("USING_HDRP");

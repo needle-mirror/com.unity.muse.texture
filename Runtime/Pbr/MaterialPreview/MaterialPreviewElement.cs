@@ -88,9 +88,9 @@ namespace Unity.Muse.Texture
             Render(dragValue);
         }
 
-        internal virtual void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default)
+        internal virtual void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default, float intensity = 1.5f)
         {
-            s_MaterialPreviewer.Render(m_Material, m_PreviewImage.image as RenderTexture, dragValue, k_CameraLookDistance, previewType, environment);
+            s_MaterialPreviewer.Render(m_Material, m_PreviewImage.image as RenderTexture, dragValue, k_CameraLookDistance, previewType, environment, intensity);
         }
 
         internal void RefreshRender()

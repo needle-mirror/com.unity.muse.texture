@@ -80,7 +80,8 @@ namespace Unity.Muse.Texture
             {
                 m_CurrentMapGenerationJob.Start();
                 m_CurrentDiffuseGenerationRequest =
-                    MuseTextureBackend.GenerateDiffuseMap(m_CurrentMapGenerationJob.BaseMapArtifact,
+                    MuseTextureBackend.GenerateBatchPbrMap(m_CurrentMapGenerationJob.BaseMapArtifact,
+                        new [] {PbrMapTypes.Delighted},
                         OnDiffuseRequestCompleted);
             }
         }
@@ -116,7 +117,7 @@ namespace Unity.Muse.Texture
             EvaluateJobsCompleteness();
         }
 
-        void OnDiffuseRequestCompleted(GuidResponse response, string error)
+        void OnDiffuseRequestCompleted(BatchPbrResponse response, string error)
         {
             if (response == null || !string.IsNullOrEmpty(error))
             {
@@ -129,7 +130,7 @@ namespace Unity.Muse.Texture
             var currentMaterialData =
                 m_PbrMaterialData.First(data => data.BaseMapSourceArtifact.Guid == m_CurrentMapGenerationJob.BaseMapArtifact.Guid);
 
-            currentMaterialData.DiffuseMapSourceArtifact = new ImageArtifact(response.guid, uint.MinValue);
+            currentMaterialData.DiffuseMapSourceArtifact = new ImageArtifact(response.pbrs.delighted, uint.MinValue);
             m_CurrentProcessedData.DiffuseMap = currentMaterialData.DiffuseMapSourceArtifact;
 
             m_CurrentProcessedData.DiffuseMap.GetArtifact((_, rawData, message) =>

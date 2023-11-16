@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.1] - 2023-11-16
+
+### Added
+
+- Add ColorPicker
+- Add feedback system to textures
+
+### Changed
+
+- Change PBR preview visuals
+- Rename diffuseMap to albedoMap
+- Change exported material name to human readable name
+- Color input images cannot be greater than 512x512 pixels
+
+### Fixed
+
+- Fix strength for Input Image not working properly
+
+### Removed
+
+- Remove Samples
+
 ## [0.4.1] - 2023-10-20
 
 ### Added

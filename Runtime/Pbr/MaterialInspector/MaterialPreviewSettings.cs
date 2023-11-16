@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.AppUI.UI;
+using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,9 +15,11 @@ namespace Unity.Muse.Texture
 
         private Dropdown m_PrimitivesDropdown;
         private Dropdown m_HdriDropdown;
+        private TouchSliderFloat m_IntensitySlider;
         
         public event Action<PrimitiveObjectTypes> OnTargetPrimitiveChanged;
         internal event Action<HdriEnvironment> OnHdriChanged;
+        internal event Action<float> OnIntensityChanged;
         
         private List<string> m_PrimitivesDropdownSrc = new()
         {
@@ -45,7 +48,7 @@ namespace Unity.Muse.Texture
 
         private void GenerateVisualTree()
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("MaterialInspector"));
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.materialInspectorStyleSheet));
             
             name = "PreviewSettings";
             AddToClassList("muse-material--container-horizontal");
@@ -71,22 +74,43 @@ namespace Unity.Muse.Texture
             hdri.AddToClassList("muse-preview--hdri");
             
             Add(hdri);
+            
+            
+            var touchSlider = new TouchSliderFloat()
+            {
+                name = "Intensity",
+                label = "Intensity",
+                lowValue = 0.0f,
+                highValue = 100.0f,
+                tooltip = "Light Intensity",
+                value = MaterialPreviewSceneHandler.DefaultHdriIntensity,
+                formatString = "F1"
+            };
+            
+            touchSlider.AddToClassList("muse-preview--intensity");
+
+            Add(touchSlider);
         }
 
         private void OnAttachToPanel(AttachToPanelEvent evt)
         {
             m_PrimitivesDropdown = this.Q<Dropdown>("PrimitivesSelector");
             m_HdriDropdown = this.Q<Dropdown>("HdriSelector");
+            m_IntensitySlider = this.Q<TouchSliderFloat>("Intensity");
 
             m_PrimitivesDropdown.RegisterValueChangedCallback(OnPrimitiveSelected);
             m_HdriDropdown.RegisterValueChangedCallback(OnHdriSelected);
+            m_IntensitySlider.RegisterValueChangingCallback(OnIntensitySelected);
+            m_IntensitySlider.RegisterValueChangedCallback(OnIntensitySelected);
 
             InitializeDropDowns();
         }
+
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
             m_PrimitivesDropdown.UnregisterValueChangedCallback(OnPrimitiveSelected);
             m_HdriDropdown.UnregisterValueChangedCallback(OnHdriSelected);
+            m_IntensitySlider.UnregisterValueChangedCallback(OnIntensitySelected);
             
             m_PrimitivesDropdown = null;
             m_HdriDropdown = null;
@@ -137,6 +161,14 @@ namespace Unity.Muse.Texture
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
+        private void OnIntensitySelected(ChangingEvent<float> evt)
+        {
+            OnIntensityChanged?.Invoke(evt.newValue);
+        }
+        private void OnIntensitySelected(ChangeEvent<float> evt)
+        {
+            OnIntensityChanged?.Invoke(evt.newValue);
+        }
 
         public void SelectPrimitive(PrimitiveObjectTypes type)
         {
@@ -147,8 +179,12 @@ namespace Unity.Muse.Texture
         {
             m_HdriDropdown?.SetValueWithoutNotify(new []{ (int)environment });
         }
-
-
+        
+        internal void SetIntensity(float intensity)
+        {
+            m_IntensitySlider?.SetValueWithoutNotify(intensity);
+        }
+        
         public void SetMaterial(Material mMaterial)
         {
         }

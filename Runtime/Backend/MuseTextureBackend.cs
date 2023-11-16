@@ -1,19 +1,13 @@
 using System;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Unity.Muse.Common;
 using UnityEngine.Networking;
 
 namespace Unity.Muse.Texture
 {
-    internal abstract class MuseTextureBackend: GenerativeAIBackend
+    abstract class MuseTextureBackend: GenerativeAIBackend
     {
-        static readonly string k_GenerateBatchPbrMapURL = $"{k_ServiceBaseURL}/pbr/batch/generate";
-        static readonly string k_GenerateImageURL = $"{k_TextToImageServiceBaseURL}/generate";
-        static readonly string k_UpscaleGeneratedImageURL = $"{k_TextToImageServiceBaseURL}/upscale_image";
-        static readonly string k_GenerateDiffuse = $"{k_ServiceBaseURL}/pbr_delighting/generate";
-
         /// <summary>
         /// Initiate Text to Texture generation on Cloud. It only allocates texture ids and actual generation occurs in background.
         /// Use `RequestStatus` to query progress and `DownloadImage` to download intermediate or final result.
@@ -27,57 +21,13 @@ namespace Unity.Muse.Texture
             TextToImageRequest settings,
             Action<TextToImageResponse, string> onDone)
         {
-            void HandleRequest(object data, string error)
-            {
-                if (onDone != null)
+            return SendJsonRequest(TexturesUrl.generate, new TextToImageItemRequest(prompt, settings),
+                RequestHandler<TextToImageResponse>((data, error) =>
                 {
                     if (data != null)
-                    {
-                        try
-                        {
-                            var res = JsonUtility.FromJson<TextToImageResponse>(Encoding.UTF8.GetString((byte[])data));
-                            res.seed = settings.seed;
-                            onDone(res, error);
-                            return;
-                        }
-                        catch (ArgumentException e)
-                        {
-                            onDone(null, e.Message);
-                            return;
-                        }
-
-                    }
-                    onDone(null, error);
-                }
-            }
-
-            return SendJSONRequest(k_GenerateImageURL, new TextToImageItemRequest(prompt, settings, AccessToken),
-                HandleRequest);
-        }
-
-        /// <summary>
-        /// Take an artifact and generate a diffuse map from it.
-        /// </summary>
-        /// <param name="fromImage">base image</param>
-        /// <param name="onDone">guid result</param>
-        /// <returns></returns>
-        public static UnityWebRequestAsyncOperation GenerateDiffuseMap(ImageArtifact fromImage, Action<GuidResponse, string> onDone)
-        {
-            var request = new DiffuseMapRequest(fromImage.Guid, AccessToken);
-            void HandleRequest(object data, string error)
-            {
-                if (onDone == null) return;
-                
-                if (data != null && string.IsNullOrEmpty(error))
-                {
-                    var res = JsonUtility.FromJson<GuidResponse>(Encoding.UTF8.GetString((byte[])data));
-                    onDone(res, error);
-                    return;
-                }
-                onDone(null, error);
-            }
-            
-            return SendJSONRequest(k_GenerateDiffuse, request, HandleRequest);
+                        data.seed = settings.seed;
+                    onDone?.Invoke(data, error);
+                }));
         }
 
         /// <summary>
@@ -87,52 +37,38 @@ namespace Unity.Muse.Texture
         /// <param name="mapTypes"></param>
         /// <param name="onDone"></param>
         /// <returns>The the reference to the async operation this generates so that it may be cancelled</returns>
-        internal static UnityWebRequestAsyncOperation GenerateBatchPbrMap(ImageArtifact fromImage, PBRMapTypes[] mapTypes, Action<BatchPBRResponse, string> onDone)
+        internal static UnityWebRequestAsyncOperation GenerateBatchPbrMap(ImageArtifact fromImage, PbrMapTypes[] mapTypes, Action<BatchPbrResponse, string> onDone)
         {
             var backendMapTypeNames = mapTypes.Select(GetMapTypeName).ToArray();
-
-            var request = new GenerateBatchPBRMapRequest(fromImage.Guid, backendMapTypeNames, AccessToken);
-            
-            void HandleRequest(object data, string error)
-            {
-                if (onDone != null)
-                {
-                    if (data != null && String.IsNullOrEmpty(error))
-                    {
-                        var res = JsonUtility.FromJson<BatchPBRResponse>(Encoding.UTF8.GetString((byte[])data));
-                        onDone(res, error);
-                        return;
-                    }
-                    onDone(null, error);
-                }
-            }
-            
-            return SendJSONRequest(k_GenerateBatchPbrMapURL, request, HandleRequest);
+            var request = new GenerateBatchPbrMapRequest(fromImage.Guid, backendMapTypeNames);
+            return SendJsonRequest(TexturesUrl.pbr, request, RequestHandler(onDone));
         }
 
-        internal static string GetMapTypeName(PBRMapTypes mapType) =>
+        internal static string GetMapTypeName(PbrMapTypes mapType) =>
             mapType switch
             {
-                PBRMapTypes.BaseMap => "emission",
-                PBRMapTypes.Emission => "emission",
-                PBRMapTypes.Height => "height",
-                PBRMapTypes.Normal => "normal",
-                PBRMapTypes.Metallic => "metallic",
-                PBRMapTypes.Smoothness => "roughness",
-                PBRMapTypes.AO => "ao",
+                PbrMapTypes.BaseMap => "emission",
+                PbrMapTypes.Emission => "emission",
+                PbrMapTypes.Height => "height",
+                PbrMapTypes.Normal => "normal",
+                PbrMapTypes.Metallic => "metallic",
+                PbrMapTypes.Smoothness => "roughness",
+                PbrMapTypes.AO => "ao",
+                PbrMapTypes.Delighted => "delighted",
                 _ => string.Empty
             };
 
-        internal static string GetPBRMapGuid(PBRMapGuids guids, PBRMapTypes mapType) =>
+        internal static string GetPBRMapGuid(PbrMapGuids guids, PbrMapTypes mapType) =>
             mapType switch
             {
-                PBRMapTypes.BaseMap => guids.emission,
-                PBRMapTypes.Emission => guids.emission,
-                PBRMapTypes.Height => guids.height,
-                PBRMapTypes.Normal => guids.normal,
-                PBRMapTypes.Metallic => guids.metallic,
-                PBRMapTypes.Smoothness => guids.roughness,
-                PBRMapTypes.AO => guids.ao,
+                PbrMapTypes.BaseMap => guids.emission,
+                PbrMapTypes.Emission => guids.emission,
+                PbrMapTypes.Height => guids.height,
+                PbrMapTypes.Normal => guids.normal,
+                PbrMapTypes.Metallic => guids.metallic,
+                PbrMapTypes.Smoothness => guids.roughness,
+                PbrMapTypes.AO => guids.ao,
+                PbrMapTypes.Delighted => guids.delighted,
                 _ => string.Empty
             };
 
@@ -146,22 +82,7 @@ namespace Unity.Muse.Texture
         /// In case error occured error string is non-null and other parameters are null</param>
         public static UnityWebRequestAsyncOperation UpscaleImage(Artifact artifact, Action<UpscaleImageResponse, string> onDone)
         {
-            void HandleRequest(object data, string error)
-            {
-                if (onDone != null && onDone.Target != null)
-                {
-                    if (data != null)
-                    {
-                        var json = Encoding.UTF8.GetString((byte[]) data);
-                        var res = JsonUtility.FromJson<UpscaleImageResponse>(json);
-                        onDone(res, error);
-                        return;
-                    }
-                    onDone(null, error);
-                }
-            }
-
-            return SendJSONRequest(k_UpscaleGeneratedImageURL, new UpscaleImageRequest(artifact.Guid, AccessToken), HandleRequest);
+            return SendJsonRequest(TexturesUrl.upscale, new GuidItemRequest(artifact.Guid), RequestHandler(onDone));
         }
     }
 }

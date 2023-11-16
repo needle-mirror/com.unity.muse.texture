@@ -34,7 +34,7 @@ namespace Unity.Muse.Texture
         }
 
         internal void Render(Material material, RenderTexture renderTexture, Vector3 cameraRotation,
-            float cameraDistance, PrimitiveObjectTypes previewType, HdriEnvironment environment)
+            float cameraDistance, PrimitiveObjectTypes previewType, HdriEnvironment environment, float intensity)
         {
 #if !HDRP_PIPELINE_ENABLED
             var currentRenderSettings = new RenderSettingsData();
@@ -42,7 +42,7 @@ namespace Unity.Muse.Texture
 #endif
             
             m_SceneHandler.InitializePrimitiveTarget(previewType);
-            m_SceneHandler.InitializeReflectionProbe(environment);
+            m_SceneHandler.InitializeReflectionProbe(environment, intensity);
             m_SceneHandler.MaterialTarget.sharedMaterial = material;
 
             var rotation = Quaternion.Euler(cameraRotation.y, cameraRotation.x, 0);

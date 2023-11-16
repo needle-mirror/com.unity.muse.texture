@@ -4,16 +4,21 @@ using UnityEditor;
 
 namespace Unity.Muse.Texture.Editor
 {
-    internal static class WindowMenuItem
+    static class WindowMenuItem
     {
         const string k_MuseTextureModeKey = "TextToImage";
 
         [MenuItem("Muse/New Texture Generator", false, 100)]
-        public static void CreateTextureWindow()
+        public static void CreateTextureWindowMenuItem()
         {
-            EditorModelAssetEditor.OpenWindowForMode(k_MuseTextureModeKey);
+            CreateTextureWindow();
         }
-        
+
+        internal static MuseEditor CreateTextureWindow()
+        {
+            return EditorModelAssetEditor.OpenWindowForMode(k_MuseTextureModeKey);
+        }
+
         [MenuItem("Muse/New Texture Generator", true)]
         public static bool ValidateCreateSpriteWindow()
         {

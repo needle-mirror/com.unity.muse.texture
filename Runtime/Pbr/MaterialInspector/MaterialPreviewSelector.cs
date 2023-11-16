@@ -1,5 +1,6 @@
 using System;
 using Unity.AppUI.UI;
+using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Button = Unity.AppUI.UI.Button;
@@ -41,7 +42,7 @@ namespace Unity.Muse.Texture
 
         private void GenerateVisualTree()
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("MaterialInspector"));
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.materialInspectorStyleSheet));
             
             name = "PreviewSelector";
             

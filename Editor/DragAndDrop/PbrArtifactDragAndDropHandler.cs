@@ -100,7 +100,10 @@ namespace Unity.Muse.Texture.Editor
             path = GetPathRelativeToRoot(path);
             if (string.IsNullOrWhiteSpace(path))
                 path = "Assets";
-            path = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(path, m_BaseMap.Guid + ".mat"));
+
+            var fileName = MaterialExporter.GetMaterialName(m_BaseMap);
+            
+            path = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(path, fileName + ".mat"));
 
             MaterialExporter.ExportMaterial(m_BaseMap, m_ProcessedMaterialData, path);  
         }

@@ -13,6 +13,11 @@ namespace Unity.Muse.Texture
 {
     internal class MaterialPreviewSceneHandler: IDisposable
     {
+#if HDRP_PIPELINE_ENABLED
+        public const float DefaultHdriIntensity = 50f;
+#else
+        public const float DefaultHdriIntensity = 30f;
+#endif
         Scene m_Scene;
         Camera m_Camera;
         List<Light> m_Lights;
@@ -27,6 +32,7 @@ namespace Unity.Muse.Texture
         VolumeProfile m_VolumeProfile;
         HDRISky m_HdriSky;
         VisualEnvironment m_VisualEnvironment;
+        Exposure m_Exposure;
 #endif
 
         public Scene Scene => m_Scene;
@@ -81,6 +87,10 @@ namespace Unity.Muse.Texture
             m_VisualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
             
             AddGameObject(volume.gameObject);
+            
+            m_Exposure = m_VolumeProfile.Add<Exposure>();
+            m_Exposure.mode.Override(ExposureMode.Fixed);
+            m_Exposure.fixedExposure.Override(0f);
 #else
             var previewCamera = new GameObject("Preview Scene Camera", typeof(Camera))
             {
@@ -177,8 +187,10 @@ namespace Unity.Muse.Texture
             return component;
         }
 
-        internal void InitializeReflectionProbe(HdriEnvironment environment = HdriEnvironment.Default)
+        internal void InitializeReflectionProbe(HdriEnvironment environment = HdriEnvironment.Default, float intensity = 1.0f)
         {
+            intensity = GetIntensityForRP(intensity);
+            
             m_CurrentHdriEnvironment = environment;
             var reflectionCubemap = HdriProvider.GetHdri(m_CurrentHdriEnvironment.Value); 
             
@@ -188,7 +200,7 @@ namespace Unity.Muse.Texture
                 hideFlags = HideFlags.DontSave
             };
             m_RenderSettingsData.ambientMode = AmbientMode.Skybox;
-            m_RenderSettingsData.ambientIntensity = 1.5f;
+            m_RenderSettingsData.ambientIntensity = intensity;
             m_RenderSettingsData.ambientSkyColor = Color.white;
             m_RenderSettingsData.ambientGroundColor = Color.white;
             m_RenderSettingsData.ambientEquatorColor = Color.white;
@@ -199,7 +211,7 @@ namespace Unity.Muse.Texture
             m_RenderSettingsData.reflectionIntensity = 0f;
             
 #endif
-            
+#if !HDRP_PIPELINE_ENABLED 
             if (m_ReflectionProbe == null)
             {
                 var reflectionGo = new GameObject();
@@ -210,22 +222,19 @@ namespace Unity.Muse.Texture
                 m_ReflectionProbe.clearFlags = ReflectionProbeClearFlags.SolidColor;
                 m_ReflectionProbe.importance = 1;
                 m_ReflectionProbe.size = new Vector3(100f, 100f, 100f);
-#if HDRP_PIPELINE_ENABLED
-                m_ReflectionProbeAdditionalData = m_ReflectionProbe.gameObject.AddComponent<HDAdditionalReflectionData>();
-#endif
 
                 AddGameObject(reflectionGo); 
             }
-#if !HDRP_PIPELINE_ENABLED
+
+            m_ReflectionProbe.intensity = intensity; 
+            m_ReflectionProbe.customBakedTexture = reflectionCubemap;
             m_RenderSettingsData.ApplyCurrentSettings();
             DynamicGI.UpdateEnvironment();
 #endif
 
-            m_ReflectionProbe.customBakedTexture = reflectionCubemap;
-            
 #if HDRP_PIPELINE_ENABLED
+            m_Exposure.compensation.Override(intensity);
             m_HdriSky.hdriSky.Override(reflectionCubemap);
-            m_ReflectionProbeAdditionalData.customTexture = reflectionCubemap;
 #endif
         }
         
@@ -270,6 +279,16 @@ namespace Unity.Muse.Texture
             }
 #else
             SceneManager.UnloadSceneAsync(m_Scene);
+#endif
+        }
+        
+        static float GetIntensityForRP(float intensity)
+        {
+            var normalizedValue = intensity / 100f;
+#if HDRP_PIPELINE_ENABLED 
+            return Mathf.Lerp(-15f, 15f, normalizedValue);
+#else
+            return Mathf.Lerp(0f, 5f, normalizedValue);
 #endif
         }
     }

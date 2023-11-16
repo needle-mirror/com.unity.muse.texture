@@ -58,7 +58,7 @@ namespace Unity.Muse.Texture
 
         public static Shader GetDefaultShaderForPipeline()
         {
-            return Resources.Load<Shader>("MuseMaterialShaderGraph");
+            return ResourceManager.Load<Shader>(PackageResources.museMaterialShaderGraph);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Unity.Muse.Texture
         /// <returns></returns>
         public static Texture2D GenerateAOMap(Texture2D heightMap)
         {
-            var shader = Resources.Load<Shader>("AO");
+            var shader = ResourceManager.Load<Shader>(PackageResources.ambientOcclusionShader);
             var blitMaterial = new Material(shader);
             
             var heightmapRT = RenderTexture.GetTemporary(heightMap.width, heightMap.height, 0, RenderTextureFormat.R16, RenderTextureReadWrite.Linear);

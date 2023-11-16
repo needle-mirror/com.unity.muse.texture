@@ -1,45 +1,51 @@
 using System;
+using System.Globalization;
 using Unity.AppUI.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    internal class FactorSliderFloat : TouchSliderFloat
+    class FactorSliderFloat : TouchSliderFloat
     {
-        private LocalizedTextElement m_ValueLabel;
-
-        public FactorSliderFloat() : base()
+        public string TrailingString
         {
+            get => m_TrailingString;
+            set
+            {
+                m_TrailingString = value;
+                UpdateLabel();
+            }
+        }
+
+        LocalizedTextElement m_ValueLabel;
+        string m_TrailingString;
+
+        public FactorSliderFloat(string trailingString = "x") : base()
+        {
+            m_TrailingString = trailingString;
             m_ValueLabel = this.Q<LocalizedTextElement>(classes: valueUssClassName);
             this.RegisterValueChangingCallback(OnValueLabelChanging);
             UpdateLabel();
         }
 
-        private void OnValueLabelChanging(ChangingEvent<float> evt)
+        void OnValueLabelChanging(ChangingEvent<float> evt)
         {
-           UpdateLabel(); 
+           UpdateLabel();
         }
-        
-        private void UpdateLabel()
+
+        void UpdateLabel()
         {
             if(m_ValueLabel == null)
                 return;
-            
-            m_ValueLabel.text = FormatFloat(value) + "x";
+
+            m_ValueLabel.text = value.ToString(formatString, CultureInfo.InvariantCulture.NumberFormat) + m_TrailingString;
         }
 
         public override void SetValueWithoutNotify(float newValue)
         {
             base.SetValueWithoutNotify(newValue);
             UpdateLabel();
-        }
-        
-        private static string FormatFloat(float value)
-        {
-            var roundedValue = (float)Math.Round(value, 2);
-
-            return roundedValue.ToString(Mathf.Approximately(Mathf.Floor(roundedValue), roundedValue) ? "0" : "0.00");
         }
     }
 }

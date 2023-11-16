@@ -14,14 +14,14 @@ namespace Unity.Muse.Texture
         public bool Success { get; private set; }
         public string Error { get; private set; }
 
-        public Dictionary<PBRMapTypes, byte[]> MapsRawData { get; }
+        public Dictionary<PbrMapTypes, byte[]> MapsRawData { get; }
 
         public ImageArtifact SourceArtifact { get; }
 
         public event Action<CreateBatchPbrMapJob> OnGenerationCompleted;
 
-        public Dictionary<PBRMapTypes, ImageArtifact> MapTypes { get; }
-        private Dictionary<PBRMapTypes, ImageArtifact> RequestMapTypes { get; set;  }
+        public Dictionary<PbrMapTypes, ImageArtifact> MapTypes { get; }
+        private Dictionary<PbrMapTypes, ImageArtifact> RequestMapTypes { get; set;  }
 
         UnityWebRequestAsyncOperation m_MapGenerationRequest;
 
@@ -36,12 +36,12 @@ namespace Unity.Muse.Texture
                 OnGenerationCompleted?.Invoke(this);
         }
 
-        public CreateBatchPbrMapJob(ImageArtifact sourceArtifact, Dictionary<PBRMapTypes, ImageArtifact> mapTypes)
+        public CreateBatchPbrMapJob(ImageArtifact sourceArtifact, Dictionary<PbrMapTypes, ImageArtifact> mapTypes)
         {
             m_CompletionCount = 0;
             SourceArtifact = sourceArtifact;
             MapTypes = mapTypes;
-            MapsRawData = new Dictionary<PBRMapTypes, byte[]>();
+            MapsRawData = new Dictionary<PbrMapTypes, byte[]>();
             ResetMaps();
         }
 
@@ -117,7 +117,7 @@ namespace Unity.Muse.Texture
             }
         }
 
-        void OnPbrMapGenerationDone(BatchPBRResponse response, string s)
+        void OnPbrMapGenerationDone(BatchPbrResponse response, string s)
         {
             if (!string.IsNullOrEmpty(s) || !response.success)
             {

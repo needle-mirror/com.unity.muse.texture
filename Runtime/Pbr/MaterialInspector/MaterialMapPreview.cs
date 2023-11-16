@@ -13,6 +13,7 @@ namespace Unity.Muse.Texture
         
         PrimitiveObjectTypes m_CurrentPreviewType = PrimitiveObjectTypes.Sphere;
         HdriEnvironment m_CurrentHdriEnvironment = HdriEnvironment.Default;
+        float m_CurrentHdriIntensity = MaterialPreviewSceneHandler.DefaultHdriIntensity;
         
         internal PrimitiveObjectTypes CurrentPreviewType => m_CurrentPreviewType;
         internal HdriEnvironment CurrentHdriEnvironment => m_CurrentHdriEnvironment;
@@ -45,14 +46,20 @@ namespace Unity.Muse.Texture
             RefreshRender();
         }
 
-        internal override void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default)
+        internal void SetHdriIntensity(float intensity)
+        {
+            m_CurrentHdriIntensity = intensity;
+            RefreshRender();
+        }
+
+        internal override void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default, float intensity = 1.5f)
         {
             switch (m_SelectedPreviewItem)
             {
                 case MaterialPreviewItem.Material:
                     tooltip = "Shift + Drag to rotate the model.";
                     m_PreviewImage.image = m_MaterialPreviewTexture;
-                    base.Render(dragValue, m_CurrentPreviewType, m_CurrentHdriEnvironment);
+                    base.Render(dragValue, m_CurrentPreviewType, m_CurrentHdriEnvironment, m_CurrentHdriIntensity);
                     break;
                 case MaterialPreviewItem.Artifact:
                 case MaterialPreviewItem.BaseMap:

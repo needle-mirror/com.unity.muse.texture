@@ -1,19 +1,20 @@
 using System;
+using Unity.Muse.Common;
 using UnityEngine;
 
 namespace Unity.Muse.Texture
 {
-    internal static class HdriProvider
+    static class HdriProvider
     {
         internal static Cubemap GetHdri(HdriEnvironment environment)
         {
             return environment switch
             {
-                HdriEnvironment.Default => Resources.Load<Cubemap>("HDRI/Tall Hall_lo"),
-                HdriEnvironment.Inside => Resources.Load<Cubemap>("HDRI/IndoorEnvironmentHDRI002_4K-HDR"),
-                HdriEnvironment.DayOutside => Resources.Load<Cubemap>("HDRI/DayEnvironmentHDRI030_4K-HDR"),
-                HdriEnvironment.NightOutside => Resources.Load<Cubemap>("HDRI/NightEnvironmentHDRI002_4K-HDR"),
-                HdriEnvironment.OutsideNeutral =>  Resources.Load<Cubemap>("HDRI/green_point_park_256_bw"),
+                HdriEnvironment.Default => ResourceManager.Load<Cubemap>(PackageResources.defaultHDRCubemap),
+                HdriEnvironment.Inside => ResourceManager.Load<Cubemap>(PackageResources.indoorHDRCubemap),
+                HdriEnvironment.DayOutside => ResourceManager.Load<Cubemap>(PackageResources.daylightOutdoorHDRCubemap),
+                HdriEnvironment.NightOutside => ResourceManager.Load<Cubemap>(PackageResources.nightOutdoorHDRCubemap),
+                HdriEnvironment.OutsideNeutral =>  ResourceManager.Load<Cubemap>(PackageResources.outdoorNeutralHDRCubemap),
                 _ => throw new ArgumentOutOfRangeException(nameof(environment), environment, null)
             };
         }

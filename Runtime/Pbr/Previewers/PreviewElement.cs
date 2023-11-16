@@ -18,9 +18,14 @@ namespace Unity.Muse.Texture
 
         protected PreviewType m_ActivePreviewState = PreviewType.Image;
 
-        private ActionButton m_EditButton;
-        private ActionButton m_ActionButton;
-        private VisualElement m_ButtonContainer;
+        ActionButton m_EditButton;
+        ActionButton m_ActionButton;
+
+        ActionGroup m_FeedbackGroup;
+        ActionButton m_LikeButton;
+        ActionButton m_DislikeButton;
+
+        VisualElement m_ButtonContainer;
         readonly ActionButton m_BookmarkButton;
         VisualElement m_LeftVerticalContainer;
 
@@ -43,9 +48,14 @@ namespace Unity.Muse.Texture
         protected PreviewElement(List<PbrMaterialData> pbrMaterialData, Artifact artifact)
             : base(artifact)
         {
+            if (artifact is ImageArtifact imageArtifact)
+            {
+                m_ActivePreviewState = imageArtifact.IsPbrMode ? PreviewType.PBR : PreviewType.Image;
+            }
+            
             EnableInClassList("no-mouse", !Input.mousePresent);
 
-            styleSheets.Add(Resources.Load<StyleSheet>("uss/ResultItem"));
+            styleSheets.Add(ResourceManager.Load<StyleSheet>(Common.PackageResources.resultItemStyleSheet));
             m_PreviewImage = new PreviewImage();
             m_PreviewImage.OnSelected += ArtifactSelected;
 
@@ -69,7 +79,6 @@ namespace Unity.Muse.Texture
             m_ActionButton.AddToClassList("refine-button-item");
             m_ActionButton.clicked += () => OnMenuTriggerClicked();
             m_ActionButton.SetEnabled(true);
-
             m_ButtonContainer.Add(m_ActionButton);
             m_ButtonContainer.Add(m_EditButton);
 
@@ -83,11 +92,79 @@ namespace Unity.Muse.Texture
             };
             m_BookmarkButton.clicked += OnBookmarkClicked;
             m_BookmarkButton.AddToClassList("container-button");
+
+            m_FeedbackGroup = new ActionGroup()
+            {
+                compact = true,
+                justified = false,
+                vertical = true,
+                selectionType =SelectionType.None,
+                style =
+                {
+                    flexGrow = 0f
+                }
+            };
+
+            m_FeedbackGroup.AddToClassList("container-button");
+
+            m_LikeButton = new ActionButton()
+            {
+                name = "LikeBtn",
+                tooltip = TextContent.likeTooltip,
+                icon = "like"
+            };
+
+            m_LikeButton.clicked += OnLikeClicked;
+
+            m_DislikeButton = new ActionButton()
+            {
+                name = "DislikeBtn",
+                tooltip = TextContent.dislikeTooltip,
+                icon = "dislike"
+            };
+
+            m_DislikeButton.clicked += OnDislikeClicked;
+
+            m_FeedbackGroup.Add(m_LikeButton);
+            m_FeedbackGroup.Add(m_DislikeButton);
+
             m_LeftVerticalContainer.Add(m_BookmarkButton);
+            m_LeftVerticalContainer.Add(m_FeedbackGroup);
 
             UpdateVisuals();
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+        }
+
+        void OnLikeClicked()
+        {
+            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
+            feedbackManager.ToggleLike(m_Artifact);
+
+            UpdateFeedback();
+        }
+
+        void OnDislikeClicked()
+        {
+            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
+            feedbackManager.ToggleDislike(m_Artifact);
+
+            UpdateFeedback();
+        }
+
+        void UpdateFeedback()
+        {
+            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
+            var isLiked = feedbackManager.IsLiked(m_Artifact);
+            m_LikeButton.icon = isLiked ? "like-filled" : "like";
+
+            m_DislikeButton.EnableInClassList("container-hidden", isLiked);
+
+            var isDisliked = feedbackManager.IsDisliked(m_Artifact);
+            m_DislikeButton.icon = isDisliked ? "dislike-filled" : "dislike";
+
+            m_LikeButton.EnableInClassList("container-hidden", isDisliked);
+
         }
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
@@ -115,6 +192,16 @@ namespace Unity.Muse.Texture
         protected bool IsBookmarked()
         {
             return CurrentModel.GetData<BookmarkManager>().IsBookmarked(m_Artifact);
+        }
+
+        internal bool IsDisliked()
+        {
+            return CurrentModel.GetData<FeedbackManager>().IsDisliked(m_Artifact);
+        }
+
+        internal bool IsLiked()
+        {
+            return CurrentModel.GetData<FeedbackManager>().IsLiked(m_Artifact);
         }
 
         void UpdateEditButton()
@@ -159,6 +246,7 @@ namespace Unity.Muse.Texture
             UpdateVisuals();
             UpdateView();
             UpdateBookmark();
+            UpdateFeedback();
         }
 
         void UpdateVisuals()
@@ -220,9 +308,10 @@ namespace Unity.Muse.Texture
             m_ActivePreviewState = type;
             UpdateVisuals();
             SetPreviewImage(m_Artifact);
-            OnPreviewTypeChanged?.Invoke(m_ActivePreviewState);
             if (m_Artifact is ImageArtifact imageArtifact)
                 imageArtifact.IsPbrMode = m_ActivePreviewState == PreviewType.PBR;
+
+            OnPreviewTypeChanged?.Invoke(m_ActivePreviewState);
         }
 
         protected void SetPreviewImage(Artifact image)

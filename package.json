@@ -1,34 +1,27 @@
 {
   "name": "com.unity.muse.texture",
   "displayName": "Muse Texture Tool",
-  "version": "0.4.1",
+  "version": "1.0.0-pre.1",
   "unity": "2022.3",
   "description": "Muse Texture Tool is a package that provides a set of tools to help create AI-generated texture content from text input in Unity.",
   "dependencies": {
-    "com.unity.muse.common": "0.4.1",
+    "com.unity.muse.common": "1.0.0-pre.1",
     "com.unity.shadergraph": "14.0.7"
   },
-  "samples": [
-    {
-      "displayName": "Sample 1",
-      "description": "Sample 1 description",
-      "path": "Samples~/Sample1"
-    }
-  ],
   "relatedPackages": {
-    "com.unity.muse.texture.tests": "0.4.1",
-    "com.unity.muse.common.tests": "0.4.1"
+    "com.unity.muse.texture.tests": "1.0.0-pre.1",
+    "com.unity.muse.common.tests": "1.0.0-pre.1"
   },
   "_upm": {
-    "changelog": "### Added\n\n- Add option for Default Path of Muse assets in Preferences.\n\n### Changed\n\n- Change minimum version of shadergraph to \"14.0.7\".\n- Reduce import time of HDRI images.\n- Change Roughness references to Smoothness.\n\n### Fixed\n\n- Retain textures on scene changed.\n- Fix default camera being replaced.\n- Fix preview scenes leaking.\n- Fix NullReferenceException when using the inpainting tool.\n- Fix empty canvas when a texture is loaded.\n- Fix UltraLiteDB could not be found when doing builds."
+    "changelog": "### Added\n\n- Add ColorPicker\n- Add feedback system to textures\n\n### Changed\n\n- Change PBR preview visuals\n- Rename diffuseMap to albedoMap\n- Change exported material name to human readable name\n- Color input images cannot be greater than 512x512 pixels\n\n### Fixed\n\n- Fix strength for Input Image not working properly\n\n### Removed\n\n- Remove Samples"
   },
   "upmCi": {
-    "footprint": "de24fdfff0e37cd39dc29bbbc261a16b64aaea48"
+    "footprint": "5ae75c9b478a1835134918ba619f6a09867e15a9"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@0.4/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "1dccb55c0f83cedf718411bcc20e723deb2538c2"
+    "revision": "8ee0bebb03cb550cdbb3c243b019c11940e6a081"
   }
 }

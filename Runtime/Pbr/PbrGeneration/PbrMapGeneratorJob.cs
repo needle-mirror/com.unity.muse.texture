@@ -22,12 +22,12 @@ namespace Unity.Muse.Texture
         public bool IsCancelled { get; private set; }
         public ImageArtifact BaseMapArtifact => m_BaseMapSourceArtifact;
 
-        static readonly PBRMapTypes[] k_MapTypesToGenerate = {
-            PBRMapTypes.Height,
-            PBRMapTypes.Metallic,
-            PBRMapTypes.Normal,
-            PBRMapTypes.BaseMap,
-            PBRMapTypes.Smoothness,
+        static readonly PbrMapTypes[] k_MapTypesToGenerate = {
+            PbrMapTypes.Height,
+            PbrMapTypes.Metallic,
+            PbrMapTypes.Normal,
+            PbrMapTypes.BaseMap,
+            PbrMapTypes.Smoothness,
         };
 
         readonly ImageArtifact m_BaseMapSourceArtifact;
@@ -62,12 +62,12 @@ namespace Unity.Muse.Texture
             IsRunning = true;
 
             // TODO: This needs to be a batch/one shot job on the BE
-            var mapTypes = new Dictionary<PBRMapTypes, ImageArtifact>
+            var mapTypes = new Dictionary<PbrMapTypes, ImageArtifact>
             {
-                {PBRMapTypes.BaseMap, m_BaseMapSourceArtifact},
-                {PBRMapTypes.Height, m_HeightmapSourceArtifact},
-                {PBRMapTypes.Metallic, m_MetallicSourceArtifact},
-                {PBRMapTypes.Smoothness, m_SmoothnessSourceArtifact}
+                {PbrMapTypes.BaseMap, m_BaseMapSourceArtifact},
+                {PbrMapTypes.Height, m_HeightmapSourceArtifact},
+                {PbrMapTypes.Metallic, m_MetallicSourceArtifact},
+                {PbrMapTypes.Smoothness, m_SmoothnessSourceArtifact}
             };
 
             var batchJob = CreateBatchGenerateJobForMap(m_BaseMapSourceArtifact, mapTypes);
@@ -117,7 +117,7 @@ namespace Unity.Muse.Texture
         }
 
         CreateBatchPbrMapJob CreateBatchGenerateJobForMap(ImageArtifact sourceArtifact,
-                                                    Dictionary<PBRMapTypes, ImageArtifact> mapTypes)
+                                                    Dictionary<PbrMapTypes, ImageArtifact> mapTypes)
         {
             if (IsCancelled)
             {
@@ -147,8 +147,8 @@ namespace Unity.Muse.Texture
 
             IsRunning = false;
 
-            var artifacts = new Dictionary<PBRMapTypes, ImageArtifact>();
-            var rawArtifacts = new Dictionary<PBRMapTypes, byte[]>();
+            var artifacts = new Dictionary<PbrMapTypes, ImageArtifact>();
+            var rawArtifacts = new Dictionary<PbrMapTypes, byte[]>();
             foreach (var job in m_BatchJobs)
             {
                 foreach (var mapType in job.MapTypes)
@@ -160,16 +160,16 @@ namespace Unity.Muse.Texture
 
             var processedData = new ProcessedPbrMaterialData
             {
-                BaseMap = artifacts[PBRMapTypes.BaseMap],
-                BaseMapPNGData = rawArtifacts[PBRMapTypes.BaseMap],
-                NormalMap = artifacts[PBRMapTypes.Normal],
-                NormalMapPNGData = rawArtifacts[PBRMapTypes.Normal],
-                MetallicMap = artifacts[PBRMapTypes.Metallic],
-                MetallicMapPNGData = rawArtifacts[PBRMapTypes.Metallic],
-                SmoothnessMap = artifacts[PBRMapTypes.Smoothness],
-                SmoothnessMapPNGData = rawArtifacts[PBRMapTypes.Smoothness],
-                HeightmapMap = artifacts[PBRMapTypes.Height],
-                HeightmapPNGData = rawArtifacts[PBRMapTypes.Height]
+                BaseMap = artifacts[PbrMapTypes.BaseMap],
+                BaseMapPNGData = rawArtifacts[PbrMapTypes.BaseMap],
+                NormalMap = artifacts[PbrMapTypes.Normal],
+                NormalMapPNGData = rawArtifacts[PbrMapTypes.Normal],
+                MetallicMap = artifacts[PbrMapTypes.Metallic],
+                MetallicMapPNGData = rawArtifacts[PbrMapTypes.Metallic],
+                SmoothnessMap = artifacts[PbrMapTypes.Smoothness],
+                SmoothnessMapPNGData = rawArtifacts[PbrMapTypes.Smoothness],
+                HeightmapMap = artifacts[PbrMapTypes.Height],
+                HeightmapPNGData = rawArtifacts[PbrMapTypes.Height]
             };
 
             Completed?.Invoke(allSucceeded, processedData);
@@ -195,11 +195,11 @@ namespace Unity.Muse.Texture
             }
             else
             {
-                var mapTypes = new Dictionary<PBRMapTypes, ImageArtifact>
+                var mapTypes = new Dictionary<PbrMapTypes, ImageArtifact>
                 {
-                    {PBRMapTypes.Normal, m_NormalMapSourceArtifact}
+                    {PbrMapTypes.Normal, m_NormalMapSourceArtifact}
                 };
-                var heightJob = CreateBatchGenerateJobForMap(job.MapTypes[PBRMapTypes.Height], mapTypes);
+                var heightJob = CreateBatchGenerateJobForMap(job.MapTypes[PbrMapTypes.Height], mapTypes);
                 heightJob.Start();
             }
 
