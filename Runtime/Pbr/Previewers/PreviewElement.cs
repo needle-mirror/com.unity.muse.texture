@@ -52,7 +52,7 @@ namespace Unity.Muse.Texture
             {
                 m_ActivePreviewState = imageArtifact.IsPbrMode ? PreviewType.PBR : PreviewType.Image;
             }
-            
+
             EnableInClassList("no-mouse", !Input.mousePresent);
 
             styleSheets.Add(ResourceManager.Load<StyleSheet>(Common.PackageResources.resultItemStyleSheet));
@@ -98,7 +98,7 @@ namespace Unity.Muse.Texture
                 compact = true,
                 justified = false,
                 vertical = true,
-                selectionType =SelectionType.None,
+                selectionType = SelectionType.None,
                 style =
                 {
                     flexGrow = 0f
@@ -299,7 +299,7 @@ namespace Unity.Muse.Texture
             m_ButtonContainer.style.display = canRefineBookmark && !m_IsError ? DisplayStyle.Flex : DisplayStyle.None;
             m_ButtonContainer.visible = canRefineBookmark;
             m_EditButton.SetEnabled(m_PreviewImage.image != null);
-            m_ActionButton.visible = canRefine;
+            m_ActionButton.visible = isArtifactAvailable;
             m_EditButton.visible = canRefine;
         }
 
