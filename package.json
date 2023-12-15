@@ -1,27 +1,27 @@
 {
   "name": "com.unity.muse.texture",
   "displayName": "Muse Texture Tool",
-  "version": "1.0.0-pre.2",
+  "version": "1.0.0-pre.3",
   "unity": "2022.3",
   "description": "Muse Texture Tool is a package that provides a set of tools to help create AI-generated texture content from text input in Unity.",
   "dependencies": {
-    "com.unity.muse.common": "1.0.0-pre.2",
+    "com.unity.muse.common": "1.0.0-pre.3",
     "com.unity.shadergraph": "14.0.7"
   },
   "relatedPackages": {
-    "com.unity.muse.texture.tests": "1.0.0-pre.2",
-    "com.unity.muse.common.tests": "1.0.0-pre.2"
+    "com.unity.muse.texture.tests": "1.0.0-pre.3",
+    "com.unity.muse.common.tests": "1.0.0-pre.3"
   },
   "_upm": {
-    "changelog": "### Fixed\n\n- Fix ellipsis not visible in refine mode."
+    "changelog": "### Fixed\n\n- Fix error when trying to build a Unity Project."
   },
   "upmCi": {
-    "footprint": "773589d2ff4fa785568ab080b14a49a0e0273731"
+    "footprint": "eee46ebd370ff2bd2340f30a256327fc789bf163"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "0ef237cfd80b02b286b096e8ed7f820448af0fa6"
+    "revision": "83ba6fb85af0e596caf735c7b37ff0ae5f137392"
   }
 }
