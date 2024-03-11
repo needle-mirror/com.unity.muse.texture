@@ -7,14 +7,17 @@ using Button = Unity.AppUI.UI.Button;
 
 namespace Unity.Muse.Texture
 {
-    internal class MaterialPreviewSelector : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class MaterialPreviewSelector : VisualElement
     {
-        public new class UxmlFactory : UxmlFactory<MaterialPreviewSelector, UxmlTraits>
-        {
-        }
+#if ENABLE_UXML_TRAITS
+        public new class UxmlFactory : UxmlFactory<MaterialPreviewSelector, UxmlTraits> { }
+#endif
 
-        private Button m_ArtifactPreviewButton;
-        private Button m_MaterialPreviewButton;
+        private ActionButton m_ArtifactPreviewButton;
+        private ActionButton m_MaterialPreviewButton;
 
         private IconButton m_DiffuseMapPreviewButton;
         private IconButton m_HeightMapPreviewButton;
@@ -24,10 +27,9 @@ namespace Unity.Muse.Texture
 
         private Material m_Material;
         
-        private const string k_SelectedClassName = "muse-material-inspector-preview--selected";
-        private const string k_MainButtonSelectedClassName = "muse-material-inspector-preview-main--selected";
-
         private const string k_MapImageElementName = "map-image";
+
+        const string k_PreviewSelectedUssClassName = "muse-material-inspector-preview--selected";
         
         public MaterialPreviewItem SelectedPreviewItem { get; private set; } = MaterialPreviewItem.Material;
 
@@ -55,18 +57,18 @@ namespace Unity.Muse.Texture
                 justified = false
             };
             
-            actionGroup.Add(new Button()
+            actionGroup.Add(new ActionButton()
             {
                 name = "ArtifactPreview",
                 tooltip = "Artifact Preview",
-                trailingIcon = "grid-four--regular"
+                icon = "grid-four"
             }); 
             
-            actionGroup.Add(new Button()
+            actionGroup.Add(new ActionButton()
             {
                 name = "MaterialPreview",
                 tooltip = "Material Preview",
-                trailingIcon = "generic-sphere--regular"
+                icon = "generic-sphere"
             });
             
             Add(actionGroup);
@@ -106,8 +108,8 @@ namespace Unity.Muse.Texture
         {
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
             
-            m_ArtifactPreviewButton = this.Q<Button>("ArtifactPreview");
-            m_MaterialPreviewButton = this.Q<Button>("MaterialPreview");
+            m_ArtifactPreviewButton = this.Q<ActionButton>("ArtifactPreview");
+            m_MaterialPreviewButton = this.Q<ActionButton>("MaterialPreview");
             m_DiffuseMapPreviewButton = this.Q<IconButton>("UnlitMap");
             m_HeightMapPreviewButton = this.Q<IconButton>("HeightMap");
             m_MetallicMapPreviewButton = this.Q<IconButton>("MetallicMap");
@@ -235,13 +237,13 @@ namespace Unity.Muse.Texture
         
         void UpdateSelectedState(MaterialPreviewItem selectedItem)
         {
-            m_MaterialPreviewButton.EnableInClassList(k_MainButtonSelectedClassName, selectedItem == MaterialPreviewItem.Material);
-            m_ArtifactPreviewButton.EnableInClassList(k_MainButtonSelectedClassName, selectedItem == MaterialPreviewItem.Artifact);
-            m_DiffuseMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.BaseMap); 
-            m_HeightMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.HeightMap);
-            m_MetallicMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.MetallicMap);
-            m_SmoothnessMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.SmoothnessMap);
-            m_AOMapPreviewButton.EnableInClassList(k_SelectedClassName, selectedItem == MaterialPreviewItem.AOMap);
+            m_MaterialPreviewButton.EnableInClassList(Styles.selectedUssClassName, selectedItem == MaterialPreviewItem.Material);
+            m_ArtifactPreviewButton.EnableInClassList(Styles.selectedUssClassName, selectedItem == MaterialPreviewItem.Artifact);
+            m_DiffuseMapPreviewButton.EnableInClassList(k_PreviewSelectedUssClassName, selectedItem == MaterialPreviewItem.BaseMap); 
+            m_HeightMapPreviewButton.EnableInClassList(k_PreviewSelectedUssClassName, selectedItem == MaterialPreviewItem.HeightMap);
+            m_MetallicMapPreviewButton.EnableInClassList(k_PreviewSelectedUssClassName, selectedItem == MaterialPreviewItem.MetallicMap);
+            m_SmoothnessMapPreviewButton.EnableInClassList(k_PreviewSelectedUssClassName, selectedItem == MaterialPreviewItem.SmoothnessMap);
+            m_AOMapPreviewButton.EnableInClassList(k_PreviewSelectedUssClassName, selectedItem == MaterialPreviewItem.AOMap);
         }
     }
 }

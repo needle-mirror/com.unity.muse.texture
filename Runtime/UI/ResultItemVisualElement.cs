@@ -106,8 +106,8 @@ namespace Unity.Muse.Texture
                 {
                     id = (int)Actions.SwitchPreview,
                     label = context.isMultiSelect ? "Switch Preview" : $"View as {changeStateStr}",
-                    enabled = AccountInfo.Instance.IsSubscribed ||
-                        (!AccountInfo.Instance.IsSubscribed && PbrDataCache.IsInCache(imageArtifact)),
+                    enabled = AccountInfo.Instance.IsEntitled ||
+                        (!AccountInfo.Instance.IsEntitled && PbrDataCache.IsInCache(imageArtifact)),
                 });
             }
 
@@ -132,7 +132,7 @@ namespace Unity.Muse.Texture
                 {
                     id = (int)Actions.CreateVariations,
                     label = label,
-                    enabled = AccountInfo.Instance.IsSubscribed,
+                    enabled = AccountInfo.Instance.IsEntitled,
                 });
             }
 
@@ -256,7 +256,7 @@ namespace Unity.Muse.Texture
                     {
                         id = (int)Actions.Upscale,
                         label = "Upscale",
-                        enabled = AccountInfo.Instance.IsSubscribed,
+                        enabled = AccountInfo.Instance.IsEntitled,
                     });
                 }
             }
@@ -301,6 +301,8 @@ namespace Unity.Muse.Texture
                 case Actions.SwitchPreview:
                     var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
                     SetCurrentState(changeState);
+                    var tool = CurrentModel.isRefineMode && changeState == PreviewType.Image ? CurrentModel.DefaultRefineTool : null;
+                    CurrentModel.SetActiveTool(tool);
                     break;
                 case Actions.Refine:
                     CurrentModel.RefineArtifact(m_Artifact);

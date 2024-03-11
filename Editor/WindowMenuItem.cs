@@ -16,7 +16,9 @@ namespace Unity.Muse.Texture.Editor
 
         internal static MuseEditor CreateTextureWindow()
         {
-            return EditorModelAssetEditor.OpenWindowForMode(k_MuseTextureModeKey);
+            var museWindow = EditorModelAssetEditor.OpenWindowForMode(k_MuseTextureModeKey);
+            museWindow.DiscardChanges();
+            return museWindow;
         }
 
         [MenuItem("Muse/New Texture Generator", true)]

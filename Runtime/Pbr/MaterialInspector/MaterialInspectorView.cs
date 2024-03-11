@@ -9,11 +9,14 @@ using Vector2Field = Unity.AppUI.UI.Vector2Field;
 
 namespace Unity.Muse.Texture
 {
-    class MaterialInspectorView : ScrollView
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    partial class MaterialInspectorView : ScrollView
     {
-        public new class UxmlFactory : UxmlFactory<MaterialInspectorView, UxmlTraits>
-        {
-        }
+#if ENABLE_UXML_TRAITS
+        public new class UxmlFactory : UxmlFactory<MaterialInspectorView, UxmlTraits> { }
+#endif
 
         MaterialPreviewItem m_SelectedItem;
         Material m_Material;

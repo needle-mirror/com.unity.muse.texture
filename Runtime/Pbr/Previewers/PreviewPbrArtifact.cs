@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Muse.Common;
+using Unity.Muse.Common.Utils;
 using Unity.Muse.Texture.Pbr.Cache;
 using UnityEngine.UIElements;
 
@@ -46,11 +47,10 @@ namespace Unity.Muse.Texture
                     height = Length.Percent(100)
                 }
             };
+            GenericLoader.SetDisplay(this, autoLoading);
 
             GenericLoader.OnDelete += OnDeleteClicked;
             GenericLoader.OnRetry += OnRetry;
-
-            Add(GenericLoader);
         }
 
         private void OnRetry()
@@ -66,7 +66,7 @@ namespace Unity.Muse.Texture
         public void SetLoadingState(bool enabled)
         {
             GenericLoader.SetState(enabled ? GenericLoader.State.Loading : GenericLoader.State.None);
-            GenericLoader.style.display = enabled ? DisplayStyle.Flex : DisplayStyle.None;
+            GenericLoader.SetDisplay(this, enabled);
             MarkDirtyRepaint();
         }
 
@@ -113,12 +113,13 @@ namespace Unity.Muse.Texture
             if (material == null)
             {
                 GenericLoader.SetState(GenericLoader.State.Error, "Failed to generate material");
+                GenericLoader.SetDisplay(this, true);
                 return;
             }
-            
+
             ObjectUtils.Retain(material);
-            
-            m_CurrentArtifact.MaterialMetaData.ApplyToMaterial(material); 
+
+            m_CurrentArtifact.MaterialMetaData.ApplyToMaterial(material);
 
             m_CurrentMaterial = material;
             m_CurrentMaterialData = materialData;
@@ -138,6 +139,7 @@ namespace Unity.Muse.Texture
         void PbrGenerationProgress(float progress)
         {
             GenericLoader.SetProgress(progress);
+            GenericLoader.SetDisplay(this, true);
         }
 
         void OnSelected(PointerDownEvent evt)

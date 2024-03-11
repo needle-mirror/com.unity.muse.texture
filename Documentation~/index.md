@@ -28,4 +28,6 @@ To apply the generated texture or PBR material directly in your project, drag it
 
 ## Additional resources
 
+* [Unity AI FAQ](https://unity.com/ai/faq)
+* [Muse feature setup](https://unity.com/products/muse/onboarding)
 * [Muse Sprite Generator](https://docs.unity3d.com/Packages/com.unity.muse.sprite@latest)

@@ -9,7 +9,7 @@
 >
     <Style src="project:/Packages/com.unity.muse.common/PackageResources/Styles/UnityMuseTheme.tss"/>
     <Style src="MaterialInspector.uss"/>
-    <appui:Panel>
+    <appui:Panel scale="small">
         <muse:MaterialInspector name="MaterialInspector" class="muse-material--inspector">
             <appui:ExVisualElement class="muse-material--container-horizontal">
                 <muse:MaterialInspectorView name="MaterialInspectorView" class="muse-material-inspector--view"/>

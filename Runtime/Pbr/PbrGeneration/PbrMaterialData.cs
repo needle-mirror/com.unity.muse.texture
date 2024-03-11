@@ -1,5 +1,6 @@
 using System;
 using Unity.Muse.Common;
+using Unity.Muse.Texture.Pbr.Cache;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -71,9 +72,19 @@ namespace Unity.Muse.Texture
                     return null;
 
                 if (m_AOMapPNGData != null) return m_AOMapPNGData;
+
+                var cached = AOCache.FindOne(BaseMap.Guid);
                 
+                if(cached != null)
+                {
+                    m_AOMapPNGData = cached.AOMapPNGData;
+                    return m_AOMapPNGData;
+                }
+
                 var texture = MaterialGeneratorUtils.GenerateAOMap(HeightmapPNGData);
                 m_AOMapPNGData = texture.EncodeToPNG();
+                
+                AOCache.Write(BaseMap, m_AOMapPNGData);
                 texture.SafeDestroy();
 
                 return m_AOMapPNGData;

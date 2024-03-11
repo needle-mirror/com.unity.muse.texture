@@ -51,5 +51,9 @@ namespace Unity.Muse.Texture
         [ResourcePath]
         internal const string ambientOcclusionShader =
             "Packages/com.unity.muse.texture/Runtime/Pbr/ShaderGraph/PackageResources/AO.shader";
+        
+        [ResourcePath]
+        internal const string ambientScaleShader =
+            "Packages/com.unity.muse.texture/Runtime/Pbr/ShaderGraph/PackageResources/AoScale.compute";
     }
 }

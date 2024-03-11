@@ -47,8 +47,8 @@ IconButton {
     flex-shrink: 1;
 }
 
-.muse-label--component > .appui-vector2field {
-    padding-right: var(--appui-spacing-50);
+.muse-label--component > .appui-numericalfield {
+    flex-grow: 1;
 }
 
 .muse-label--component > .unity-text-element {
@@ -107,8 +107,8 @@ IconButton {
     margin-right: var(--appui-spacing-50);
 }
 
-.muse-material-preview--selector > .appui-actiongroup > .appui-button{
-    width: 42px;
+.muse-material-preview--selector > .appui-actiongroup > .appui-actionbutton {
+    width: var(--appui-sizing-1000);
 }
 
 .muse-material-preview--selector > .appui-actiongroup > .appui-button > .appui-button__trailingcontainer{
@@ -138,10 +138,6 @@ IconButton {
     border-width: 2px;
     border-color: var(--appui-accent-100);
     opacity: 1.0;
-}
-
-.muse-material-inspector-preview-main--selected{
-    background-color: var(--appui-base-400);
 }
 
 .muse-inspector__title {

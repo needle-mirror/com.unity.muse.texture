@@ -4,9 +4,14 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    internal class MaterialMapPreview: MaterialPreviewElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    partial class MaterialMapPreview: MaterialPreviewElement
     {
+#if ENABLE_UXML_TRAITS
         public new class UxmlFactory : UxmlFactory<MaterialMapPreview, UxmlTraits> { }
+#endif
         
         private MaterialPreviewItem m_SelectedPreviewItem;
         private UnityEngine.Texture m_MaterialPreviewTexture;

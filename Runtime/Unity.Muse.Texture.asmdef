@@ -6,7 +6,8 @@
         "GUID:2f101f87087d58f4ba92ca00188e763d",
         "GUID:e0205eb74dc764cf6ab9891355857e49",
         "GUID:457756d89b35d2941b3e7b37b4ece6f1",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
     ],
     "includePlatforms": [
         "Editor"
@@ -27,6 +28,16 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "[1,17]",
             "define": "HDRP_PIPELINE_ENABLED"
+        },
+        {
+            "name": "Unity",
+            "expression": "2023.3.0a1",
+            "define": "ENABLE_UXML_SERIALIZED_DATA"
+        },
+        {
+            "name": "Unity",
+            "expression": "[2021.3,2023.3.0a1)",
+            "define": "ENABLE_UXML_TRAITS"
         }
     ],
     "noEngineReferences": false

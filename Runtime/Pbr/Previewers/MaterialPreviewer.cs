@@ -66,7 +66,8 @@ namespace Unity.Muse.Texture
             camera.fieldOfView =
                 (float)(Mathf.Atan(
                     (renderTexture.width <= 0 ? 1f : Mathf.Max(1f, renderTexture.height / (float)renderTexture.width)) *
-                    Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 2.0);
+                    Mathf.Tan((float)(camera.fieldOfView * 0.5 * (Math.PI / 180.0)))) * 57.295780181884766 * 1.5f);
+
             camera.Render();
             camera.fieldOfView = fieldOfView;
             

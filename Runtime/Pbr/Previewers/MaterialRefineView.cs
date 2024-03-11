@@ -230,7 +230,7 @@ namespace Unity.Muse.Texture
             {
                 case PreviewType.PBR:
 
-                    tooltip = "Click + Drag to rotate the model.";
+                    tooltip = "Shift + Click + Drag to rotate the model.";
 
                     m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None 
                         ? DisplayStyle.Flex
@@ -261,6 +261,10 @@ namespace Unity.Muse.Texture
                         MaterialPreviewItem.AOMap => RenderMap(MuseMaterialProperties.ambientOcclusionMapKey),
                         _ => throw new ArgumentOutOfRangeException()
                     };
+
+                    m_RotationManipulator.active =
+                        m_MaterialPreviewSelector.SelectedPreviewItem == MaterialPreviewItem.Material;
+                    
                     CurrentModel.SetLeftOverlay(m_MaterialInspectorView);
                     break;
 

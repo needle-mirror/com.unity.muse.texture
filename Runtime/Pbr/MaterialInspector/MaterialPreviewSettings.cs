@@ -7,11 +7,14 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    internal class MaterialPreviewSettings : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class MaterialPreviewSettings : VisualElement
     {
-        public new class UxmlFactory : UxmlFactory<MaterialPreviewSettings, UxmlTraits>
-        {
-        }
+#if ENABLE_UXML_TRAITS
+        public new class UxmlFactory : UxmlFactory<MaterialPreviewSettings, UxmlTraits> { }
+#endif
 
         private Dropdown m_PrimitivesDropdown;
         private Dropdown m_HdriDropdown;

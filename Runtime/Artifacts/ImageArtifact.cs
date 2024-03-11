@@ -12,7 +12,7 @@ namespace Unity.Muse.Texture
     [Serializable]
     internal sealed class ImageArtifact : SimpleImageArtifact, IGenerateArtifact, IVariateArtifact, IInpaintArtifact, IUpscaleArtifact
     {
-        const float k_DefaultVariateStrength = 0.85f;
+        const float k_DefaultVariateStrength = 0.15f;
 
         [SerializeField]
         internal bool IsPbrMode = false;
@@ -108,7 +108,7 @@ namespace Unity.Muse.Texture
                 (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4,
                 512,
                 512,
-                Math.Abs(100-referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength)) / 100.0f);
+                Math.Abs(referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength)) / 100.0f); //Server expects a value between 0 and 1
 
             var guid = referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid);
             var imageBase64 = referenceOperator.GetSettingString(ReferenceOperator.Setting.Image);
@@ -137,13 +137,14 @@ namespace Unity.Muse.Texture
                 (int)GenerativeAIBackend.GeneratorModel.StableDiffusionV_1_4,
                 512,
                 512,
-                Math.Abs(100-referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength)) / 100.0f);
+                Math.Abs(referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength)) / 100.0f); //Server expects a value between 0 and 1
 
             SetOperators(ops);
             GenerativeAIBackend.ControlNetGenerate(
                 referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid),
                 referenceOperator.GetSettingString(ReferenceOperator.Setting.Image),
                 promptOperator?.GetPrompt(),
+                referenceOperator.GetSettingString(ReferenceOperator.Setting.Color), 
                 settings,
                 OnGeneratingDone);
         }

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.Muse.Common;
 using UnityEngine;
 
@@ -14,7 +16,7 @@ namespace Unity.Muse.Texture.Pbr.Cache
 {
     internal static class PbrDataCache
     {
-        static readonly string k_FileStreamPath = $"{Application.persistentDataPath}/{k_DatabaseName}";
+        internal static readonly string k_FileStreamPath = $"{Application.persistentDataPath}/{k_DatabaseName}";
         const string k_DatabaseName = "PbrDataCache.db";
         const string k_ArtifactCollectionName = "PbrData";
 
@@ -42,9 +44,16 @@ namespace Unity.Muse.Texture.Pbr.Cache
                 }
             }
         }
-        static PbrDatabaseObject FindOne(string albedoGuid)
+
+        static UltraLiteCollection<PbrDatabaseObject> GetCollection()
         {
             var collection = Db.GetCollection<PbrDatabaseObject>(k_ArtifactCollectionName);
+            return collection;
+        }
+
+        static PbrDatabaseObject FindOne(string albedoGuid)
+        {
+            var collection = GetCollection();
             var query = Query.Where("AlbedoGuid", value => value.AsString == albedoGuid);
             var result = collection.FindOne(query);
             s_Db.Dispose();
@@ -54,10 +63,40 @@ namespace Unity.Muse.Texture.Pbr.Cache
 
         static void Upsert(PbrDatabaseObject artifactObject)
         {
-            var collection = Db.GetCollection<PbrDatabaseObject>(k_ArtifactCollectionName);
+            var collection = GetCollection();
             collection.Upsert(artifactObject);
             s_Db.Dispose();
             s_Fs.Dispose();
+        }
+
+        static void Delete(PbrDatabaseObject pbrObject)
+        {
+            DeleteMany(new[] { pbrObject });
+        }
+
+        static void DeleteMany(IEnumerable<PbrDatabaseObject> pbrObjects)
+        {
+            if (pbrObjects == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var guids = pbrObjects.Where(pbr => pbr != null).Select(pbr => pbr.AlbedoGuid);
+                var collection = GetCollection();
+                var query = Query.Where("AlbedoGuid", value => guids.Any(guid => guid == value.AsString));
+                collection.Delete(query);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e.Message);
+            }
+            finally
+            {
+                s_Db.Dispose();
+                s_Fs.Dispose();
+            }
         }
 #else
         static FileStream s_Fs;
@@ -83,9 +122,15 @@ namespace Unity.Muse.Texture.Pbr.Cache
             }
         }
 
-        static PbrDatabaseObject FindOne(string albedoGuid)
+        static ILiteCollection<PbrDatabaseObject> GetCollection()
         {
             var collection = Db.GetCollection<PbrDatabaseObject>(k_ArtifactCollectionName);
+            return collection;
+        }
+
+        static PbrDatabaseObject FindOne(string albedoGuid)
+        {
+            var collection = GetCollection();
             var result = collection.FindOne(item => item.AlbedoGuid == albedoGuid);
             s_Db.Dispose();
             s_Fs.Dispose();
@@ -94,10 +139,40 @@ namespace Unity.Muse.Texture.Pbr.Cache
 
         static void Upsert(PbrDatabaseObject artifactObject)
         {
-            var collection = Db.GetCollection<PbrDatabaseObject>(k_ArtifactCollectionName);
+            var collection = GetCollection();
             collection.Upsert(artifactObject);
             s_Db.Dispose();
             s_Fs.Dispose();
+        }
+
+        static void Delete(PbrDatabaseObject pbrObject)
+        {
+            DeleteMany(new[] { pbrObject });
+        }
+
+        static void DeleteMany(IEnumerable<PbrDatabaseObject> pbrObjects)
+        {
+            if (pbrObjects == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var guids = pbrObjects.Where(pbr => pbr != null)
+                    .Select(pbr => pbr.AlbedoGuid);
+                var collection = GetCollection();
+                collection.DeleteMany(x => guids.Any(guid => guid == x.AlbedoGuid));
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e.Message);
+            }
+            finally
+            {
+                s_Db.Dispose();
+                s_Fs.Dispose();
+            }
         }
 #endif
 
@@ -134,6 +209,16 @@ namespace Unity.Muse.Texture.Pbr.Cache
             processedPbrData.DiffuseMapPNGData = ArtifactCache.ReadRawData(processedPbrData.DiffuseMap);
 
             return processedPbrData;
+        }
+
+        public static void Delete(ProcessedPbrMaterialData materialData)
+        {
+            if (materialData.BaseMap == null)
+            {
+                return;
+            }
+            var artifactObject = FindOne(materialData.BaseMap.Guid);
+            Delete(artifactObject);
         }
     }
 }

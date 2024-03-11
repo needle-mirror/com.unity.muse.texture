@@ -46,9 +46,6 @@ namespace Unity.Muse.Texture
 
             if (!isShiftPressed)
                 return;
-
-            if(capture)
-                target.CapturePointer(evt.pointerId);
             
             m_PointerId = evt.pointerId;  
         }
@@ -58,12 +55,17 @@ namespace Unity.Muse.Texture
            OnPointerMove(evt, true); 
         }
 
-        public void OnPointerMove(PointerMoveEvent evt, bool useModifier)
+        public void OnPointerMove(PointerMoveEvent evt, bool useModifier, bool capture = true)
         {
             var isShiftPressed =  !useModifier || evt.shiftKey;
 
             if (!isShiftPressed || evt.pointerId != m_PointerId)
                 return;
+
+            if (!target.HasPointerCapture(evt.pointerId) && capture)
+            {
+                target.CapturePointer(evt.pointerId);
+            }
             
             var rotX = TotalRotation.x + evt.deltaPosition.x * k_XSpeed * 0.02f;
             var rotY =  TotalRotation.y + evt.deltaPosition.y * k_YSpeed * 0.02f;

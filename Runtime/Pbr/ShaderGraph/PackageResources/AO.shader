@@ -117,7 +117,7 @@ Shader "Muse/AO"
                 //int index = ((g_iHeight-1)-iPixLoc.y)*g_iWidth + iPixLoc.x;
                 //float fval = texelFetch(g_HeightsBuffer, index).x;
 
-                float adjustedDispScale = _DispScale * _MainTex_TexelSize.z / 512.0;
+                float adjustedDispScale = _DispScale;
                 float fXcen = i.vertex.x;
                 float fYcen = i.vertex.y;
                 int iW = _MainTex_TexelSize.z;

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Muse.Common;
 using UnityEngine.UIElements;
 using Unity.AppUI.UI;
+using Unity.Muse.Common.Utils;
 using UnityEngine;
 
 namespace Unity.Muse.Texture
@@ -42,8 +42,39 @@ namespace Unity.Muse.Texture
 
         public Material Material => m_PreviewPbr.CurrentMaterial;
 
-        const float k_LeftSideWidthVisible = 107f;
-        const float k_EditIconWidthVisible = 70f;
+        float m_ButtonWidth = 0f;
+        float m_ButtonContainerWidth = 0f;
+        const int k_MaxButtonColumnsEdit = 2;
+        const int k_MaxButtonColumnsLeftSide = 3;
+
+        VisualElement FrontElement => m_ActivePreviewState == PreviewType.Image ? m_PreviewImage : m_PreviewPbr;
+        bool isPreviewImage => m_ActivePreviewState == PreviewType.Image;
+        bool isPreviewPbr => m_ActivePreviewState == PreviewType.PBR;
+
+        bool m_Hovered;
+        bool hovered
+        {
+            get => m_Hovered;
+            set
+            {
+                m_Hovered = value;
+                RefreshButtonsVisibility();
+                UpdateButtons();
+            }
+        }
+
+        bool m_MenuOpened;
+        bool menuOpened
+        {
+            get => m_MenuOpened;
+            set
+            {
+                m_MenuOpened = value;
+                RefreshButtonsVisibility();
+                UpdateButtons();
+            }
+        }
+
 
         protected PreviewElement(List<PbrMaterialData> pbrMaterialData, Artifact artifact)
             : base(artifact)
@@ -58,12 +89,15 @@ namespace Unity.Muse.Texture
             styleSheets.Add(ResourceManager.Load<StyleSheet>(Common.PackageResources.resultItemStyleSheet));
             m_PreviewImage = new PreviewImage();
             m_PreviewImage.OnSelected += ArtifactSelected;
+            m_PreviewImage.OnLoadedPreview += UpdateView;
 
             m_PreviewPbr = new PreviewPbrArtifact(pbrMaterialData);
             m_PreviewPbr.OnArtifactSelected += ArtifactSelected;
-
-            Add(m_PreviewImage);
-            Add(m_PreviewPbr);
+            m_PreviewPbr.GenericLoader.OnLoadingStateChanged += state =>
+            {
+                if (state == GenericLoader.State.None)
+                    UpdateView();
+            };
 
             style.flexGrow = 1;
             m_ButtonContainer = new VisualElement();
@@ -73,6 +107,7 @@ namespace Unity.Muse.Texture
             m_EditButton.AddToClassList("refine-button");
             m_EditButton.AddToClassList("refine-button-item");
             m_EditButton.clicked += OnRefineClicked;
+            m_EditButton.RegisterCallback<GeometryChangedEvent>(OnEditButtonGeometryChangedEvent);
 
             m_ActionButton = new ActionButton { name = "more", icon = "ellipsis", tooltip = "More options" };
             m_ActionButton.AddToClassList("refine-button");
@@ -85,6 +120,8 @@ namespace Unity.Muse.Texture
             m_LeftVerticalContainer = new VisualElement();
             m_LeftVerticalContainer.AddToClassList("left-vertical-container");
             m_ButtonContainer.Add(m_LeftVerticalContainer);
+            m_ButtonContainer.RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+
             m_BookmarkButton = new ActionButton
             {
                 tooltip = TextContent.bookmarkButtonTooltip,
@@ -97,7 +134,7 @@ namespace Unity.Muse.Texture
             {
                 compact = true,
                 justified = false,
-                vertical = true,
+                direction = Direction.Vertical,
                 selectionType = SelectionType.None,
                 style =
                 {
@@ -134,6 +171,26 @@ namespace Unity.Muse.Texture
             UpdateVisuals();
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<GeometryChangedEvent>(OnGeometryChangedEvent);
+            RegisterCallback<PointerEnterEvent>(_ => hovered = true );
+            RegisterCallback<PointerLeaveEvent>(_ => hovered = false);
+
+            hovered = this.Query().Hovered().ToList().Contains(this);
+        }
+
+        void OnEditButtonGeometryChangedEvent(GeometryChangedEvent evt)
+        {
+            if (Mathf.Approximately(m_ButtonWidth, 0f) && !Mathf.Approximately(0f, m_EditButton.resolvedStyle.width))
+            {
+                m_ButtonWidth = m_EditButton.resolvedStyle.width + m_EditButton.resolvedStyle.marginLeft
+                    + m_EditButton.resolvedStyle.marginRight;
+
+                UpdateButtons();
+            }
+        }
+
+        void RefreshButtonsVisibility()
+        {
+            m_ButtonContainer.SetDisplay(FrontElement, !m_IsError && canRefineBookmark && (hovered || menuOpened || IsBookmarked()));
         }
 
         void OnLikeClicked()
@@ -169,6 +226,12 @@ namespace Unity.Muse.Texture
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
         {
+            m_ButtonContainerWidth = m_ButtonContainer.resolvedStyle.width - m_ButtonContainer.resolvedStyle.paddingLeft;
+            UpdateButtons();
+        }
+
+        void UpdateButtons()
+        {
             UpdateEditButton();
             UpdateLeftSideButtons();
             UpdateBookmark();
@@ -178,8 +241,12 @@ namespace Unity.Muse.Texture
         {
             var bookmark = CurrentModel.GetData<BookmarkManager>();
             bookmark.Bookmark(m_Artifact, !bookmark.IsBookmarked(m_Artifact));
+        }
 
+        protected override void OnBookmarkChanged()
+        {
             UpdateBookmark();
+            RefreshButtonsVisibility();
         }
 
         void UpdateBookmark()
@@ -191,6 +258,9 @@ namespace Unity.Muse.Texture
 
         protected bool IsBookmarked()
         {
+            if (CurrentModel == null)
+                return false;
+
             return CurrentModel.GetData<BookmarkManager>().IsBookmarked(m_Artifact);
         }
 
@@ -217,23 +287,25 @@ namespace Unity.Muse.Texture
 
         internal bool ShouldLeftSideButtonBeVisible()
         {
-            return resolvedStyle.width >= k_LeftSideWidthVisible && resolvedStyle.height >= k_LeftSideWidthVisible;
+            return (m_ButtonContainerWidth >= m_ButtonWidth * k_MaxButtonColumnsLeftSide);
         }
 
         protected bool ShouldEditButtonBeVisible()
         {
-            return resolvedStyle.width >= k_EditIconWidthVisible;
+            return (m_ButtonContainerWidth >= m_ButtonWidth * k_MaxButtonColumnsEdit);
         }
 
         void OnMenuTriggerClicked()
         {
             m_ButtonContainer.AddToClassList("is-hovered");
+            menuOpened = true;
             OnActionMenu(m_ActionButton);
         }
 
         protected override void MenuDismissed()
         {
             m_ButtonContainer.RemoveFromClassList("is-hovered");
+            menuOpened = false;
         }
 
         void ArtifactSelected(Artifact artifact)
@@ -251,28 +323,8 @@ namespace Unity.Muse.Texture
 
         void UpdateVisuals()
         {
-            m_ButtonContainer.RemoveFromHierarchy();
-
-            var enablePreviewImage = m_ActivePreviewState == PreviewType.Image;
-            var enablePreviewPbr = m_ActivePreviewState == PreviewType.PBR;
-
-            m_PreviewImage.style.display =
-                enablePreviewImage ? DisplayStyle.Flex : DisplayStyle.None;
-            m_PreviewPbr.style.display =
-                enablePreviewPbr ? DisplayStyle.Flex : DisplayStyle.None;
-
-            VisualElement visualElementFront = enablePreviewImage ? m_PreviewImage : m_PreviewPbr;
-            visualElementFront.BringToFront();
-            visualElementFront =
-                enablePreviewImage ? m_PreviewImage : m_PreviewPbr.GetChildren<VisualElement>(false).First();
-
-            visualElementFront.Add(m_ButtonContainer);
-            m_PreviewImage.OnLoadedPreview += UpdateView;
-            m_PreviewPbr.GenericLoader.OnLoadingStateChanged += state =>
-            {
-                if (state == GenericLoader.State.None)
-                    UpdateView();
-            };
+            m_PreviewImage.SetDisplay(this, isPreviewImage);
+            m_PreviewPbr.SetDisplay(this, isPreviewPbr);
         }
 
         bool isArtifactAvailable
@@ -296,9 +348,6 @@ namespace Unity.Muse.Texture
 
         public override void UpdateView()
         {
-            m_ButtonContainer.style.display = canRefineBookmark && !m_IsError ? DisplayStyle.Flex : DisplayStyle.None;
-            m_ButtonContainer.visible = canRefineBookmark;
-            m_EditButton.SetEnabled(m_PreviewImage.image != null);
             m_ActionButton.visible = isArtifactAvailable;
             m_EditButton.visible = canRefine;
         }

@@ -9,7 +9,10 @@ using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
 {
-    internal class MaterialPreviewElement : VisualElement
+#if ENABLE_UXML_SERIALIZED_DATA
+    [UxmlElement]
+#endif
+    internal partial class MaterialPreviewElement : VisualElement
     {
         protected internal readonly Image m_PreviewImage;
         readonly Vector2Int k_PreviewSize = new(2048, 2048);
@@ -22,8 +25,6 @@ namespace Unity.Muse.Texture
         
         internal Image previewImage => m_PreviewImage;
         
-        public new class UxmlFactory : UxmlFactory<MaterialPreviewElement, UxmlTraits> { }
-
         protected internal bool m_PreviewEnabled = true;
 
         public MaterialPreviewElement()
@@ -67,7 +68,7 @@ namespace Unity.Muse.Texture
         protected void SetMaterial(Material material)
         {
             m_Material = material;
-            Render(Vector2.zero);
+            Render(RotationManipulator?.TotalRotation ?? Vector2.zero);
         }
 
         void OnAttach(AttachToPanelEvent evt)
