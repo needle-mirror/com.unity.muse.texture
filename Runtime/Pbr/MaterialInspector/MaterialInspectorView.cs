@@ -1,11 +1,11 @@
 using System;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common;
 using UnityEngine;
 using UnityEngine.UIElements;
-using FloatField = Unity.AppUI.UI.FloatField;
-using Toggle = Unity.AppUI.UI.Toggle;
-using Vector2Field = Unity.AppUI.UI.Vector2Field;
+using FloatField = Unity.Muse.AppUI.UI.FloatField;
+using Toggle = Unity.Muse.AppUI.UI.Toggle;
+using Vector2Field = Unity.Muse.AppUI.UI.Vector2Field;
 
 namespace Unity.Muse.Texture
 {

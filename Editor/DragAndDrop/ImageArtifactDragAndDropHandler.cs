@@ -15,6 +15,8 @@ namespace Unity.Muse.Texture.Editor
     {
         ImageArtifact m_ImageArtifact;
 
+        public event Action<string, Artifact> ArtifactDropped;
+
         public static void Register()
         {
             DragAndDropFactory.SetHandlerForArtifact("Texture Image", typeof(ImageArtifactDragAndDropHandler));
@@ -43,6 +45,8 @@ namespace Unity.Muse.Texture.Editor
                 var newGameObject = CreateNewGameObject(worldPosition);
                 Undo.RegisterCreatedObjectUndo(newGameObject, $"Create Game Object with material.");
             }
+
+            ArtifactDropped?.Invoke(null, m_ImageArtifact);
         }
 
         public bool CanDropHierarchy(GameObject dropUpon) => true;
@@ -61,6 +65,8 @@ namespace Unity.Muse.Texture.Editor
                 var newGameObject = CreateNewGameObject(Vector3.zero);
                 Undo.RegisterCreatedObjectUndo(newGameObject, $"Create Game Object with material.");
             }
+
+            ArtifactDropped?.Invoke(null, m_ImageArtifact);
         }
 
         public bool CanDropProject(string path) => true;
@@ -72,7 +78,10 @@ namespace Unity.Muse.Texture.Editor
             if (string.IsNullOrWhiteSpace(path))
                 path = ExporterHelpers.assetsRoot;
 
-            m_ImageArtifact.ExportToDirectory(path);
+            m_ImageArtifact.ExportToDirectory(path, true, exportedPath =>
+            {
+                ArtifactDropped?.Invoke(exportedPath, m_ImageArtifact);
+            });
         }
 
         void AddToGameObject(GameObject gameObject)

@@ -11,21 +11,21 @@ namespace Unity.Muse.Texture
         /// <summary>
         /// Event invoked when a material is exported with prompt
         /// </summary>
-        public static event Action<Artifact, ProcessedPbrMaterialData> OnExportMaterialWithPrompt;
+        public static event Action<Artifact, ProcessedPbrMaterialData, Action<string, Artifact>> OnExportMaterialWithPrompt;
         
         /// <summary>
         /// Event invoked when a material is exported without prompt
         /// </summary>
-        public static event Action<Artifact, ProcessedPbrMaterialData, string> OnExportMaterial;
+        public static event Action<Artifact, ProcessedPbrMaterialData, string, Action<string, Artifact>> OnExportMaterial;
         
-        internal static void ExportWithPrompt(Artifact artifact, ProcessedPbrMaterialData materialData)
+        internal static void ExportWithPrompt(Artifact artifact, ProcessedPbrMaterialData materialData, Action<string, Artifact> onMapExported = null)
         {
-            OnExportMaterialWithPrompt?.Invoke(artifact, materialData);
+            OnExportMaterialWithPrompt?.Invoke(artifact, materialData, onMapExported);
         }
         
-        internal static void ExportWithoutPrompt(Artifact baseArtifact, ProcessedPbrMaterialData materialData, string path)
+        internal static void ExportWithoutPrompt(Artifact baseArtifact, ProcessedPbrMaterialData materialData, string path, Action<string, Artifact> onMapExported = null)
         {
-            OnExportMaterial?.Invoke(baseArtifact, materialData, path); 
+            OnExportMaterial?.Invoke(baseArtifact, materialData, path, onMapExported); 
         }
     }
 }

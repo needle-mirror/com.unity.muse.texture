@@ -1,14 +1,9 @@
-using System.Linq;
-using Unity.Burst;
-using Unity.Collections;
 using Unity.Jobs;
 using Unity.Muse.Common;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Unity.Muse.Texture
 {
-    [BurstCompile]
     internal static partial class MaterialGeneratorUtils
     {
         /// <summary>
@@ -114,11 +109,6 @@ namespace Unity.Muse.Texture
         /// <returns></returns>
         public static Texture2D GenerateAOMap(Texture2D heightMap)
         {
-            //Uncomment to use burst compiled cpu version
-            //var pixels = heightMap.GetRawTextureData<Color32>();
-            //var scale = GetAoScale(ref pixels, heightMap.width, heightMap.height); 
-            //pixels.Dispose();
-
             var computeShader = ResourceManager.Load<ComputeShader>(PackageResources.ambientScaleShader);
             var resultBuffer = new ComputeBuffer(1, sizeof(float));
 
@@ -157,56 +147,6 @@ namespace Unity.Muse.Texture
             RenderTexture.ReleaseTemporary(destRT);
 
             return aoMap;
-        } 
-        
-        /*
-        * Algorithm's @author Morten Mikkelsen
-        * Contact: mortenm@unity3d.com
-        */
-        [BurstCompile]
-        private static float GetAoScale(ref NativeArray<Color32> pfHeightMap, int width, int height)
-        {
-            double dAvgSqDeriv = 0;
-            for(int y=1; y<(height-1); y++)
-            {
-                for(int x=1; x<(width-1); x++)
-                {
-                    float dHdx = 0, dHdy = 0;
-                    for (int j = 0; j < 3; j++)
-                    {
-                        for(int i=0; i<3; i++)
-                        {
-                            float fH = Mathematics.math.unlerp(0f, 255f, pfHeightMap[(y + j - 1) * width + (x + i - 1)][1]); //[1] == red channel since the heightmap is encoded as ARGB32 and we unlerp since Color32 [0, 255]
-                        
-                            int iWeightU = (i-1)*((j&1)+1);
-                            int iWeightV = (1-j)*((i&1)+1);
-                        
-                            dHdx += iWeightU*fH;
-                            dHdy += iWeightV*fH;
-                        } 
-                    }
-                    
-                    dHdx /= 8; dHdy /= 8;
-                    
-                    dAvgSqDeriv += dHdx*dHdx;
-                    dAvgSqDeriv += dHdy*dHdy;
-                }
-            }
-            
-            dAvgSqDeriv /= (2*(width-1)*(height-1));
-            float sigma = (float) Mathematics.math.sqrt(dAvgSqDeriv);
-
-            float scale = 1;
-            if(sigma> float.Epsilon)
-            {
-                // the value 0.38 represents the sigma associated with
-                // the derivative map resulting from a set of normal maps made by artists
-                // The value "scale" is thus chosen such that when this height map is scaled by it
-                // we get a similar perceptual amount of color saturation when viewed as a normal map
-                // that is the value: 0.5 + 0.5*normalize( float3(-dHdx, -dHdy, 1.0) ) 
-                scale = (float)(0.38 / ((double)sigma));
-            }
-            return scale;
         }
     }
 }

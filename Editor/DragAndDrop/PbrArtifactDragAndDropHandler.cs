@@ -17,6 +17,8 @@ namespace Unity.Muse.Texture.Editor
         ImageArtifact m_BaseMap;
         ProcessedPbrMaterialData m_ProcessedMaterialData;
 
+        public event Action<string, Artifact> ArtifactDropped;
+
         public static void Register()
         {
             DragAndDropFactory.SetHandlerForArtifact("PBR Material", typeof(PbrArtifactDragAndDropHandler));
@@ -52,6 +54,8 @@ namespace Unity.Muse.Texture.Editor
             Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
 
             DropOnGameObject(dropUpon, worldPosition, m_ProcessedMaterialData);
+
+            ArtifactDropped?.Invoke(null, m_BaseMap);
         }
 
         void DropOnGameObject(GameObject go, Vector3 worldPosition, ProcessedPbrMaterialData materialData)
@@ -86,6 +90,8 @@ namespace Unity.Muse.Texture.Editor
         {
             Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
             HandleDropSceneView(dropUpon, Vector3.zero);
+
+            ArtifactDropped?.Invoke(null, m_BaseMap);
         }
 
         public bool CanDropProject(string path)
@@ -105,7 +111,7 @@ namespace Unity.Muse.Texture.Editor
             
             path = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(path, fileName + ".mat"));
 
-            MaterialExporter.ExportMaterial(m_BaseMap, m_ProcessedMaterialData, path);  
+            MaterialExporter.ExportMaterial(m_BaseMap, m_ProcessedMaterialData, path, ArtifactDropped); 
         }
 
         static string GetPathRelativeToRoot(string path)

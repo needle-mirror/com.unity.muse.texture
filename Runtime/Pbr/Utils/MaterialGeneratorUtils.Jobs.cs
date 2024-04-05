@@ -1,4 +1,3 @@
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -7,7 +6,6 @@ namespace Unity.Muse.Texture
 {
     internal static partial class MaterialGeneratorUtils
     {
-        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
         struct ConvertTextToDxtnmJob : IJobParallelFor
         {
             public NativeArray<Color32> IncomingPixels;
@@ -30,7 +28,6 @@ namespace Unity.Muse.Texture
             }
         }
 #if HDRP_PIPELINE_ENABLED
-        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
         struct CombineMaterialMaskMap : IJobParallelFor
         {
             public NativeArray<Color32> MetallicColors;
@@ -46,7 +43,6 @@ namespace Unity.Muse.Texture
         }
 #endif
 
-        [BurstCompile(FloatPrecision.Standard, FloatMode.Default, CompileSynchronously = true)]
         struct CombineMaterialRoughnessMap : IJobParallelFor
         {
             public NativeArray<Color32> MetallicColors;

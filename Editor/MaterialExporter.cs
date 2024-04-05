@@ -16,17 +16,23 @@ namespace Unity.Muse.Texture.Editor
             ExportHandler.OnExportMaterial += ExportMaterial;
         }
 
-        static void OnExportMaterialWithPrompt(Artifact baseArtifact, ProcessedPbrMaterialData materialData)
+        static void OnExportMaterialWithPrompt(Artifact baseArtifact, ProcessedPbrMaterialData materialData, Action<string, Artifact> onMapExported = null)
         {
             var fileName = GetMaterialName(baseArtifact); 
             
             var path = EditorUtility.SaveFilePanelInProject("Save material", fileName, "mat", "");
             if (string.IsNullOrEmpty(path)) return;
 
-            ExportMaterial(baseArtifact, materialData, path);
+            ExportMaterial(baseArtifact, materialData, path, onMapExported);
         }
 
+
         internal static void ExportMaterial(Artifact baseArtifact, ProcessedPbrMaterialData materialData, string path)
+        {
+            ExportMaterial(baseArtifact, materialData, path, null);
+        }
+
+        internal static void ExportMaterial(Artifact baseArtifact, ProcessedPbrMaterialData materialData, string path, Action<string, Artifact> onMapExported = null)
         {
             var material = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
 
@@ -38,19 +44,32 @@ namespace Unity.Muse.Texture.Editor
             }
 
             var baseMap = SaveAndLoadTexture2D("rawColorMap", materialData.BaseMapPNGData, materialAsset, false, true);
-            var diffuseMap = SaveAndLoadTexture2D("albedoMap", materialData.DiffuseMapPNGData, materialAsset);
-            var normalMap = SaveAndLoadTexture2D("normalMap", materialData.NormalMapPNGData, materialAsset, true);
-            var metallicMap = SaveAndLoadTexture2D("metallicMap", materialData.MetallicMapPNGData, materialAsset);
-            var smoothnessMap = SaveAndLoadTexture2D("smoothnessMap", materialData.SmoothnessMapPNGData, materialAsset);
-            var heightMap = SaveAndLoadTexture2D("heightMap", materialData.HeightmapPNGData, materialAsset);
-            var aoMap = SaveAndLoadTexture2D("ambientOcclusionMap", materialData.AOMapPNGData, materialAsset);
+            onMapExported?.Invoke(baseMap.Item2, baseArtifact);
 
-            materialAsset.SetTexture(MuseMaterialProperties.baseMapKey, diffuseMap);
-            materialAsset.SetTexture(MuseMaterialProperties.normalMapKey, normalMap);
-            materialAsset.SetTexture(MuseMaterialProperties.metallicMapKey, metallicMap);
-            materialAsset.SetTexture(MuseMaterialProperties.smoothnessMapKey, smoothnessMap);
-            materialAsset.SetTexture(MuseMaterialProperties.heightMapKey, heightMap);
-            materialAsset.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap);
+            var diffuseMap = SaveAndLoadTexture2D("albedoMap", materialData.DiffuseMapPNGData, materialAsset);
+            onMapExported?.Invoke(diffuseMap.Item2, baseArtifact);
+
+            var normalMap = SaveAndLoadTexture2D("normalMap", materialData.NormalMapPNGData, materialAsset, true);
+            onMapExported?.Invoke(normalMap.Item2, baseArtifact);
+
+            var metallicMap = SaveAndLoadTexture2D("metallicMap", materialData.MetallicMapPNGData, materialAsset);
+            onMapExported?.Invoke(metallicMap.Item2, baseArtifact);
+
+            var smoothnessMap = SaveAndLoadTexture2D("smoothnessMap", materialData.SmoothnessMapPNGData, materialAsset);
+            onMapExported?.Invoke(smoothnessMap.Item2, baseArtifact);
+
+            var heightMap = SaveAndLoadTexture2D("heightMap", materialData.HeightmapPNGData, materialAsset);
+            onMapExported?.Invoke(heightMap.Item2, baseArtifact);
+
+            var aoMap = SaveAndLoadTexture2D("ambientOcclusionMap", materialData.AOMapPNGData, materialAsset);
+            onMapExported?.Invoke(aoMap.Item2, baseArtifact);
+
+            materialAsset.SetTexture(MuseMaterialProperties.baseMapKey, diffuseMap.Item1);
+            materialAsset.SetTexture(MuseMaterialProperties.normalMapKey, normalMap.Item1);
+            materialAsset.SetTexture(MuseMaterialProperties.metallicMapKey, metallicMap.Item1);
+            materialAsset.SetTexture(MuseMaterialProperties.smoothnessMapKey, smoothnessMap.Item1);
+            materialAsset.SetTexture(MuseMaterialProperties.heightMapKey, heightMap.Item1);
+            materialAsset.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap.Item1);
 
 #if !HDRP_PIPELINE_ENABLED
             materialAsset.SetFloat(MuseMaterialProperties.useDisplacement, 0f);
@@ -61,9 +80,11 @@ namespace Unity.Muse.Texture.Editor
             EditorUtility.SetDirty(materialAsset);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(materialAsset));
+
+            onMapExported?.Invoke(path, baseArtifact);
         }
 
-        static Texture2D SaveAndLoadTexture2D(string name, byte[] pngData, Material materialAsset, bool isNormalMap = false, bool isSRGB = false)
+        static (Texture2D, string) SaveAndLoadTexture2D(string name, byte[] pngData, Material materialAsset, bool isNormalMap = false, bool isSRGB = false)
         {
             // Get path of the base asset
             var baseAssetPath = AssetDatabase.GetAssetPath(materialAsset);
@@ -87,7 +108,7 @@ namespace Unity.Muse.Texture.Editor
 
             // Save the PNG data to a file
             if (pngData is null)
-                return new Texture2D(2,2);
+                return (new Texture2D(2,2), null);
             File.WriteAllBytes(pngPath, pngData);
 
             // Ensure the new asset is included in the AssetDatabase
@@ -120,7 +141,7 @@ namespace Unity.Muse.Texture.Editor
             // Load the texture from the saved PNG file
             var newTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(pngPath);
 
-            return newTexture;
+            return (newTexture, pngPath);
         }
 
         internal static void CopyPbrMaterialProperty(Material material, Artifact baseArtifact)

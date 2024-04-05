@@ -15,7 +15,7 @@ Use a mask to refine any part of a generated texture.
    > [!TIP]
    > You can also double-click a generated texture to enter the Refinements branch.
 
-1. To activate the masking brush, select the **Paint** icon. For more information about the masking tools, refer to [Refine panel](xref:ui-elements#refine-panel) reference.
+1. To activate the masking brush, select the **Paint** icon. For more information about the masking tools, refer to [Refine panel](xref:ui-elements#refine-panel) reference and [keyboard shortcuts](xref:keyboard-shortcuts#refine-panel).
 1. Paint a mask over the area that you want to refine.
 
     ![Example masking](../images/masking.png)

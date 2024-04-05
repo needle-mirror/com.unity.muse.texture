@@ -108,8 +108,8 @@ IconButton {
 }
 
 .muse-material-preview--selector > .appui-actiongroup > .appui-actionbutton {
-    width: var(--appui-sizing-1000);
-}
+    width: var(--appui-sizing-700);
+} 
 
 .muse-material-preview--selector > .appui-actiongroup > .appui-button > .appui-button__trailingcontainer{
    margin-right: 0; 

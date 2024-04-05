@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Muse.Common;
 using UnityEngine.UIElements;
-using Unity.AppUI.UI;
+using Unity.Muse.AppUI.UI;
 using Unity.Muse.Common.Utils;
 using UnityEngine;
 
@@ -22,8 +22,6 @@ namespace Unity.Muse.Texture
         ActionButton m_ActionButton;
 
         ActionGroup m_FeedbackGroup;
-        ActionButton m_LikeButton;
-        ActionButton m_DislikeButton;
 
         VisualElement m_ButtonContainer;
         readonly ActionButton m_BookmarkButton;
@@ -144,27 +142,6 @@ namespace Unity.Muse.Texture
 
             m_FeedbackGroup.AddToClassList("container-button");
 
-            m_LikeButton = new ActionButton()
-            {
-                name = "LikeBtn",
-                tooltip = TextContent.likeTooltip,
-                icon = "like"
-            };
-
-            m_LikeButton.clicked += OnLikeClicked;
-
-            m_DislikeButton = new ActionButton()
-            {
-                name = "DislikeBtn",
-                tooltip = TextContent.dislikeTooltip,
-                icon = "dislike"
-            };
-
-            m_DislikeButton.clicked += OnDislikeClicked;
-
-            m_FeedbackGroup.Add(m_LikeButton);
-            m_FeedbackGroup.Add(m_DislikeButton);
-
             m_LeftVerticalContainer.Add(m_BookmarkButton);
             m_LeftVerticalContainer.Add(m_FeedbackGroup);
 
@@ -191,37 +168,6 @@ namespace Unity.Muse.Texture
         void RefreshButtonsVisibility()
         {
             m_ButtonContainer.SetDisplay(FrontElement, !m_IsError && canRefineBookmark && (hovered || menuOpened || IsBookmarked()));
-        }
-
-        void OnLikeClicked()
-        {
-            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
-            feedbackManager.ToggleLike(m_Artifact);
-
-            UpdateFeedback();
-        }
-
-        void OnDislikeClicked()
-        {
-            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
-            feedbackManager.ToggleDislike(m_Artifact);
-
-            UpdateFeedback();
-        }
-
-        void UpdateFeedback()
-        {
-            var feedbackManager = CurrentModel.GetData<FeedbackManager>();
-            var isLiked = feedbackManager.IsLiked(m_Artifact);
-            m_LikeButton.icon = isLiked ? "like-filled" : "like";
-
-            m_DislikeButton.EnableInClassList("container-hidden", isLiked);
-
-            var isDisliked = feedbackManager.IsDisliked(m_Artifact);
-            m_DislikeButton.icon = isDisliked ? "dislike-filled" : "dislike";
-
-            m_LikeButton.EnableInClassList("container-hidden", isDisliked);
-
         }
 
         void OnGeometryChangedEvent(GeometryChangedEvent evt)
@@ -318,7 +264,6 @@ namespace Unity.Muse.Texture
             UpdateVisuals();
             UpdateView();
             UpdateBookmark();
-            UpdateFeedback();
         }
 
         void UpdateVisuals()

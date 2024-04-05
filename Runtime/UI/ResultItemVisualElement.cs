@@ -264,13 +264,19 @@ namespace Unity.Muse.Texture
             return actions;
         }
 
-        public override bool TrySaveAsset(string directory)
+        public override bool TrySaveAsset(string directory, Action<string> onExport = null)
         {
             if (m_ActivePreviewState == PreviewType.PBR)
             {
                 var path = Path.Combine(directory, $"{m_Artifact.Guid}.mat");
                 path = path.Replace(Application.dataPath, "Assets");
-                ExportHandler.ExportWithoutPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData, path);
+                ExportHandler.ExportWithoutPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData, path, (path, artifact) =>
+                {
+                    onExport?.Invoke(path);
+                });
+
+                onExport?.Invoke(path);
+
                 return true;
             }
 
@@ -315,7 +321,11 @@ namespace Unity.Muse.Texture
                             CurrentModel.ExportArtifact(m_Artifact);
                             break;
                         case PreviewType.PBR:
-                            ExportHandler.ExportWithPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData);
+                            ExportHandler.ExportWithPrompt(m_Artifact, m_PreviewPbr.CurrentMaterialData, (path, artifact) =>
+                            {
+                                var unityGuid = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                                CurrentModel.AddExportedArtifact(unityGuid, artifact.Guid);
+                            });
                             break;
                     }
 #endif
