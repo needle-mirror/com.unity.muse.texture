@@ -27,7 +27,7 @@ namespace Unity.Muse.Texture
                 OutputPixels[index] = outputPixel;
             }
         }
-#if HDRP_PIPELINE_ENABLED
+#if USING_HDRP
         struct CombineMaterialMaskMap : IJobParallelFor
         {
             public NativeArray<Color32> MetallicColors;

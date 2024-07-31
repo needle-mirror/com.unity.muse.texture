@@ -9,6 +9,8 @@ namespace Unity.Muse.Texture
 {
     internal class MaterialRefineView : ArtifactView
     {
+        const string k_UssAssetPath = "Packages/com.unity.muse.texture/Runtime/Artifacts/Views/PackageResources/PreviewElement.uss";
+
         private Image m_Preview;
         private ResultItemVisualElement m_TargetVe;
         private GenericLoader m_GenericLoader;
@@ -19,7 +21,7 @@ namespace Unity.Muse.Texture
         private MaterialInspectorView m_MaterialInspectorView;
 
         private NodesList m_NodesList;
-        
+
         VisualElement m_BottomCanvasContent;
 
         AssetsList m_AssetsList;
@@ -36,6 +38,8 @@ namespace Unity.Muse.Texture
 
         private void OnAttachToPanel(AttachToPanelEvent evt)
         {
+            parent?.styleSheets.Add(ResourceManager.Load<StyleSheet>(k_UssAssetPath));
+
             m_BottomCanvasContent = evt.destinationPanel.visualTree.Q("control-top-content");
 
             m_MaterialPreviewSelector = new MaterialPreviewSelector();
@@ -51,7 +55,7 @@ namespace Unity.Muse.Texture
                     flexGrow = 1
                 }
             };
-            
+
             Add(m_Preview);
 
             m_GenericLoader = new GenericLoader(GenericLoader.State.Loading)
@@ -210,6 +214,7 @@ namespace Unity.Muse.Texture
 
         public override void UpdateView()
         {
+            base.UpdateView();
             if (m_TargetVe == null)
             {
                 SetImageView();
@@ -225,14 +230,14 @@ namespace Unity.Muse.Texture
                 : DisplayStyle.Flex;
 
             m_MaterialPreviewSelector.SetMaterial(m_TargetVe.Material);
-            
+
             switch (m_TargetVe.ActivePreviewState)
             {
                 case PreviewType.PBR:
 
                     tooltip = "Shift + Click + Drag to rotate the model.";
 
-                    m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None 
+                    m_MaterialPreviewSettings.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
                         ? DisplayStyle.Flex
                         : DisplayStyle.None;
                     m_MaterialInspectorView.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
@@ -241,7 +246,7 @@ namespace Unity.Muse.Texture
                     m_NodesList.style.display = m_TargetVe.GetLoadingState() == GenericLoader.State.None
                         ? DisplayStyle.None
                         : DisplayStyle.Flex;
-                    
+
                     m_MaterialPreviewSettings.SetMaterial(m_TargetVe.Material);
                     m_MaterialInspectorView.SetMaterial(m_TargetVe.Material);
 
@@ -264,7 +269,7 @@ namespace Unity.Muse.Texture
 
                     m_RotationManipulator.active =
                         m_MaterialPreviewSelector.SelectedPreviewItem == MaterialPreviewItem.Material;
-                    
+
                     CurrentModel.SetLeftOverlay(m_MaterialInspectorView);
                     break;
 
@@ -302,7 +307,7 @@ namespace Unity.Muse.Texture
         {
             m_TargetVe.PbrPreview.SetHdriEnvironment(environment);
         }
-        
+
         private void OnHdriIntensityChanged(float intensity)
         {
             m_TargetVe.PbrPreview.SetHdriIntensity(intensity);

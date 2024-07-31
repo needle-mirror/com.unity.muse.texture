@@ -71,7 +71,7 @@ namespace Unity.Muse.Texture.Editor
             materialAsset.SetTexture(MuseMaterialProperties.heightMapKey, heightMap.Item1);
             materialAsset.SetTexture(MuseMaterialProperties.ambientOcclusionMapKey, aoMap.Item1);
 
-#if !HDRP_PIPELINE_ENABLED
+#if !USING_HDRP
             materialAsset.SetFloat(MuseMaterialProperties.useDisplacement, 0f);
 #endif
 

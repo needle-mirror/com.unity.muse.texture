@@ -6,6 +6,7 @@ using UnityEditor;
 
 using UnityEngine;
 using UnityEngine.UIElements;
+using static Unity.Muse.Texture.MaterialPreviewer;
 
 namespace Unity.Muse.Texture
 {
@@ -18,20 +19,26 @@ namespace Unity.Muse.Texture
         readonly Vector2Int k_PreviewSize = new(2048, 2048);
         const float k_CameraLookDistance = 5f;
 
-        protected internal Material m_Material;
+        internal protected RenderConfiguration m_RenderConfiguration;
         internal RotationManipulator RotationManipulator { get; private set; }
 
         protected internal static MaterialPreviewer s_MaterialPreviewer;
-        
+        internal static MaterialPreviewSceneHandler sceneHandler => s_MaterialPreviewer?.sceneHandler;
+
         internal Image previewImage => m_PreviewImage;
-        
+
+        internal RenderConfiguration renderConfiguration => m_RenderConfiguration;
+
         protected internal bool m_PreviewEnabled = true;
+
+        internal event Action<Vector2> OnRotationChanged;
 
         public MaterialPreviewElement()
         {
             RotationManipulator ??= new RotationManipulator();
             RegisterCallback<AttachToPanelEvent>(OnAttach);
             RegisterCallback<DetachFromPanelEvent>(OnDetach);
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
             style.flexGrow = 1;
 
@@ -45,9 +52,26 @@ namespace Unity.Muse.Texture
 
             Add(m_PreviewImage);
 
-            s_MaterialPreviewer ??= new MaterialPreviewer();
+            if (s_MaterialPreviewer == null || !s_MaterialPreviewer.isValid)
+            {
+                s_MaterialPreviewer?.Dispose();
+                s_MaterialPreviewer = new MaterialPreviewer();
+            }
             m_PreviewImage.image = s_MaterialPreviewer.CreateDefaultRenderTexture();
-            
+
+            m_RenderConfiguration = new RenderConfiguration(
+                null,
+                (RenderTexture)m_PreviewImage.image,
+                RotationManipulator.TotalRotation,
+                k_CameraLookDistance,
+                PrimitiveObjectTypes.Sphere,
+                HdriEnvironment.Default,
+                MaterialPreviewSceneHandler.DefaultHdriIntensity,
+                false,
+                null,
+                null,
+                11.25f);
+
             #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             #endif
@@ -58,23 +82,22 @@ namespace Unity.Muse.Texture
         {
             if (s_MaterialPreviewer == null)
                 return;
-            
+
             s_MaterialPreviewer.Dispose();
             s_MaterialPreviewer = null;
         }
         #endif
 
 
-        protected void SetMaterial(Material material)
+        internal void SetMaterial(Material material)
         {
-            m_Material = material;
-            Render(RotationManipulator?.TotalRotation ?? Vector2.zero);
+            m_RenderConfiguration = m_RenderConfiguration with { material = material };
+            Render(m_RenderConfiguration);
         }
 
         void OnAttach(AttachToPanelEvent evt)
         {
             RotationManipulator.OnDrag += OnDrag;
-            
             this.AddManipulator(RotationManipulator);
         }
 
@@ -84,19 +107,81 @@ namespace Unity.Muse.Texture
             RotationManipulator.OnDrag -= OnDrag;
         }
 
-        void OnDrag(Vector2 dragValue)
+        void OnGeometryChanged(GeometryChangedEvent evt)
         {
-            Render(dragValue);
+            var backgroundColor = resolvedBackgroundColor;
+            backgroundColor.a = 0; // keep it transparent for RPs that support alpha rendering
+            m_RenderConfiguration = m_RenderConfiguration with { backgroundColor = backgroundColor };
+            Render(m_RenderConfiguration);
         }
 
-        internal virtual void Render(Vector2 dragValue, PrimitiveObjectTypes previewType = PrimitiveObjectTypes.Sphere, HdriEnvironment environment = HdriEnvironment.Default, float intensity = 1.5f)
+        void OnDrag(Vector2 dragValue)
         {
-            s_MaterialPreviewer.Render(m_Material, m_PreviewImage.image as RenderTexture, dragValue, k_CameraLookDistance, previewType, environment, intensity);
+            m_RenderConfiguration = m_RenderConfiguration with { cameraRotation = RotationManipulator.TotalRotation };
+            Render(m_RenderConfiguration);
+            OnRotationChanged?.Invoke(dragValue);
+        }
+
+        internal virtual void Render(RenderConfiguration renderConfiguration)
+        {
+            s_MaterialPreviewer.Render(renderConfiguration);
         }
 
         internal void RefreshRender()
         {
-            Render(RotationManipulator.TotalRotation);
+            Render(m_RenderConfiguration);
         }
+
+        Color resolvedBackgroundColor
+        {
+            get
+            {
+                var currentColor = Color.clear;
+                VisualElement currentElement = this;
+
+                while (currentElement != null)
+                {
+                    if (currentColor.a >= 1)
+                        break;
+
+                    var backgroundColor = currentElement.resolvedStyle.backgroundColor;
+                    currentColor = AlphaBlend(currentColor, backgroundColor);
+
+                    currentElement = currentElement.parent;
+                }
+
+                return currentColor;
+            }
+        }
+
+        static Color AlphaBlend(Color bottomColor, Color topColor)
+        {
+            if (bottomColor.a == 0)
+                return topColor;
+
+            if (topColor.a == 0 || bottomColor.a >= 1)
+                return bottomColor;
+
+            var topAlpha = topColor.a;
+            var bottomAlpha = Mathf.Clamp01(bottomColor.a * (1 - topAlpha));
+
+            var outAlpha = Mathf.Clamp01(topAlpha + bottomAlpha);
+            var outRed = (topColor.r * topAlpha + bottomColor.r * bottomAlpha) / outAlpha;
+            var outGreen = (topColor.g * topAlpha + bottomColor.g * bottomAlpha) / outAlpha;
+            var outBlue = (topColor.b * topAlpha + bottomColor.b * bottomAlpha) / outAlpha;
+
+            return new Color(outRed, outGreen, outBlue, outAlpha);
+        }
+
+        internal void SetRotation(Vector2 rotation)
+        {
+            RotationManipulator?.SetRotation(rotation);
+        }
+
+#if ENABLE_UXML_TRAITS
+
+        public new class UxmlFactory : UxmlFactory<MaterialPreviewElement, UxmlTraits> { }
+
+#endif
     }
 }

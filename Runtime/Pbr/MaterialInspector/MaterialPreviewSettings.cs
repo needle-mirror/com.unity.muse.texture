@@ -19,11 +19,11 @@ namespace Unity.Muse.Texture
         private Dropdown m_PrimitivesDropdown;
         private Dropdown m_HdriDropdown;
         private TouchSliderFloat m_IntensitySlider;
-        
+
         public event Action<PrimitiveObjectTypes> OnTargetPrimitiveChanged;
         internal event Action<HdriEnvironment> OnHdriChanged;
         internal event Action<float> OnIntensityChanged;
-        
+
         private List<string> m_PrimitivesDropdownSrc = new()
         {
             "Sphere",
@@ -52,33 +52,32 @@ namespace Unity.Muse.Texture
         private void GenerateVisualTree()
         {
             styleSheets.Add(ResourceManager.Load<StyleSheet>(PackageResources.materialInspectorStyleSheet));
-            
+
             name = "PreviewSettings";
             AddToClassList("muse-material--container-horizontal");
             AddToClassList("muse-material-preview--settings");
-            
+
             var primitive = new Dropdown()
             {
                 name= "PrimitivesSelector",
                 tooltip = "Primitive Selection",
-                
+
             };
-            
+
             primitive.AddToClassList("muse-preview--primitives");
-            
+
             Add(primitive);
-            
+
             var hdri = new Dropdown()
             {
                 name= "HdriSelector",
                 tooltip = "Reflection Probe Selection",
             };
-            
+
             hdri.AddToClassList("muse-preview--hdri");
-            
+
             Add(hdri);
-            
-            
+
             var touchSlider = new TouchSliderFloat()
             {
                 name = "Intensity",
@@ -89,7 +88,7 @@ namespace Unity.Muse.Texture
                 value = MaterialPreviewSceneHandler.DefaultHdriIntensity,
                 formatString = "F1"
             };
-            
+
             touchSlider.AddToClassList("muse-preview--intensity");
 
             Add(touchSlider);
@@ -114,7 +113,7 @@ namespace Unity.Muse.Texture
             m_PrimitivesDropdown.UnregisterValueChangedCallback(OnPrimitiveSelected);
             m_HdriDropdown.UnregisterValueChangedCallback(OnHdriSelected);
             m_IntensitySlider.UnregisterValueChangedCallback(OnIntensitySelected);
-            
+
             m_PrimitivesDropdown = null;
             m_HdriDropdown = null;
         }
@@ -124,18 +123,18 @@ namespace Unity.Muse.Texture
             m_PrimitivesDropdown.bindItem = (item, i) => item.label = m_PrimitivesDropdownSrc[i];
             m_PrimitivesDropdown.sourceItems = m_PrimitivesDropdownSrc;
             m_PrimitivesDropdown.SetValueWithoutNotify(new []{ 0 });
-            
+
             m_HdriDropdown.bindItem = (item, i) => item.label = m_HdriDropdownSrc[i];
             m_HdriDropdown.sourceItems = m_HdriDropdownSrc;
             m_HdriDropdown.SetValueWithoutNotify(new []{ 0 });
         }
-        
+
         private void OnPrimitiveSelected(ChangeEvent<IEnumerable<int>> evt)
         {
             using var selection = evt.newValue.GetEnumerator();
             if (!selection.MoveNext())
                 return;
-            
+
             OnTargetPrimitiveChanged?.Invoke(selection.Current switch
             {
                 0 => PrimitiveObjectTypes.Sphere,
@@ -146,14 +145,14 @@ namespace Unity.Muse.Texture
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
-        
-        
+
+
         private void OnHdriSelected(ChangeEvent<IEnumerable<int>> evt)
         {
             using var selection = evt.newValue.GetEnumerator();
             if (!selection.MoveNext())
                 return;
-            
+
             OnHdriChanged?.Invoke(selection.Current switch
             {
                 0 => HdriEnvironment.Default,
@@ -177,17 +176,17 @@ namespace Unity.Muse.Texture
         {
             m_PrimitivesDropdown?.SetValueWithoutNotify(new []{ (int)type });
         }
-        
+
         internal void SelectHdri(HdriEnvironment environment)
         {
             m_HdriDropdown?.SetValueWithoutNotify(new []{ (int)environment });
         }
-        
+
         internal void SetIntensity(float intensity)
         {
             m_IntensitySlider?.SetValueWithoutNotify(intensity);
         }
-        
+
         public void SetMaterial(Material mMaterial)
         {
         }

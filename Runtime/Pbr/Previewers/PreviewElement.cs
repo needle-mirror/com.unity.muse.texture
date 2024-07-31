@@ -13,6 +13,8 @@ namespace Unity.Muse.Texture
         public bool MaterialPreviewEnabled => m_PreviewPbr.PreviewEnabled;
         public event Action<Artifact> OnSelected;
 
+        const string k_UssAssetPath = "Packages/com.unity.muse.texture/Runtime/Artifacts/Views/PackageResources/PreviewElement.uss";
+
         protected PreviewImage m_PreviewImage;
         protected PreviewPbrArtifact m_PreviewPbr;
 
@@ -210,16 +212,6 @@ namespace Unity.Muse.Texture
             return CurrentModel.GetData<BookmarkManager>().IsBookmarked(m_Artifact);
         }
 
-        internal bool IsDisliked()
-        {
-            return CurrentModel.GetData<FeedbackManager>().IsDisliked(m_Artifact);
-        }
-
-        internal bool IsLiked()
-        {
-            return CurrentModel.GetData<FeedbackManager>().IsLiked(m_Artifact);
-        }
-
         void UpdateEditButton()
         {
             m_EditButton.EnableInClassList("refine-button-hidden", !ShouldEditButtonBeVisible());
@@ -261,6 +253,8 @@ namespace Unity.Muse.Texture
 
         void OnAttachToPanel(AttachToPanelEvent evt)
         {
+            parent?.styleSheets.Add(ResourceManager.Load<StyleSheet>(k_UssAssetPath));
+
             UpdateVisuals();
             UpdateView();
             UpdateBookmark();
@@ -285,14 +279,13 @@ namespace Unity.Muse.Texture
             }
         }
 
-        protected bool canRefine => isArtifactAvailable &&
-            CurrentModel != null && !CurrentModel.isRefineMode;
+        protected bool canRefine => isArtifactAvailable && CurrentModel && !CurrentModel.isRefineMode;
 
-        protected bool canRefineBookmark => isArtifactAvailable &&
-            CurrentModel != null;
+        protected bool canRefineBookmark => isArtifactAvailable && CurrentModel;
 
         public override void UpdateView()
         {
+            base.UpdateView();
             m_ActionButton.visible = isArtifactAvailable;
             m_EditButton.visible = canRefine;
         }

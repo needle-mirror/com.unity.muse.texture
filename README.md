@@ -1,8 +1,8 @@
-# About Muse Texture Generator
+# About Muse Texture
 
-The Muse Texture Generator is a tool that uses machine learning to generate textures based on the prompt you enter. You can set the number of textures to generate. You can also apply the generated textures directly to objects in your Scene view.
+With Muse Texture, you can create and edit AI-generated textures from text prompts and pattern guides. These generations are powered by Unity’s own proprietary and responsibly built model.
 
-# Installing Muse Texture Generator
+# Installing Muse Texture
 
 To install this package, follow the instructions in the [Package Manager documentation](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@latest/index.html).
 

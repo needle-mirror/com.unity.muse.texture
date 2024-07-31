@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Muse.Common;
+using Unity.Muse.Common.Services;
 using Unity.Muse.Texture.Analytics;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -36,15 +37,14 @@ namespace Unity.Muse.Texture
         {
             try
             {
-                Model.SendAnalytics(new GenerateAnalyticsData
-                {
-                    prompt = this.GetOperator<PromptOperator>()?.GetPrompt(),
-                    prompt_negative = this.GetOperator<PromptOperator>()?.GetNegativePrompt(),
-                    inpainting_used = this.GetOperator<MaskOperator>()?.Enabled() ?? false,
-                    images_generated_nr = m_Operators.GetOperator<GenerateOperator>()?.GetCount() ?? 0,
-                    reference_image_used = m_Operators.GetOperator<ReferenceOperator>()?.Enabled() ?? false,
-                    is_variation = m_Operators.GetOperator<ReferenceOperator>()?.Enabled() ?? false,
-                });
+                Model.SendAnalytics(new GenerateAnalytic(
+                    this.GetOperator<PromptOperator>()?.GetPrompt(),
+                    this.GetOperator<PromptOperator>()?.GetNegativePrompt(),
+                    this.GetOperator<MaskOperator>()?.Enabled() ?? false,
+                    m_Operators.GetOperator<GenerateOperator>()?.GetCount() ?? 0,
+                    m_Operators.GetOperator<ReferenceOperator>()?.Enabled() ?? false,
+                    m_Operators.GetOperator<ReferenceOperator>()?.Enabled() ?? false
+                ));
             }
             catch (Exception exception)
             {
@@ -87,7 +87,7 @@ namespace Unity.Muse.Texture
 
         public override void RetryGenerate(Model model)
         {
-            if (NodesList.IsVariation(m_Operators))
+            if (GenerationService.IsVariation(m_Operators))
                 Variate(m_Operators);
             else
                 Generate(model);
@@ -114,7 +114,7 @@ namespace Unity.Muse.Texture
             var imageBase64 = referenceOperator.GetSettingString(ReferenceOperator.Setting.Image);
 
             SetOperators(ops);
-            GenerativeAIBackend.VariateImage(
+            MuseTextureBackend.VariateImage(
                 guid,
                 imageBase64,
                 promptOperator?.GetPrompt(),
@@ -140,11 +140,11 @@ namespace Unity.Muse.Texture
                 Math.Abs(referenceOperator.GetSettingInt(ReferenceOperator.Setting.Strength)) / 100.0f); //Server expects a value between 0 and 1
 
             SetOperators(ops);
-            GenerativeAIBackend.ControlNetGenerate(
+            MuseTextureBackend.ControlNetGenerate(
                 referenceOperator.GetSettingString(ReferenceOperator.Setting.Guid),
                 referenceOperator.GetSettingString(ReferenceOperator.Setting.Image),
                 promptOperator?.GetPrompt(),
-                referenceOperator.GetSettingString(ReferenceOperator.Setting.Color), 
+                referenceOperator.GetSettingString(ReferenceOperator.Setting.Color),
                 settings,
                 OnGeneratingDone);
         }
@@ -170,7 +170,7 @@ namespace Unity.Muse.Texture
 
                 var newArtifact = new ImageArtifact();
                 newArtifact.SetOperators(m_Operators);
-                GenerativeAIBackend.VariateImage(
+                MuseTextureBackend.VariateImage(
                     Guid,
                     string.Empty,
                     promptOperator?.GetPrompt(),
@@ -178,6 +178,11 @@ namespace Unity.Muse.Texture
                     newArtifact.OnGeneratingDone);
                 model.AddAsset(newArtifact);
             }
+        }
+
+        public bool CanUpscale()
+        {
+            return this.GetOperator<UpscaleOperator>() == null;
         }
 
         public void Upscale(Model model)
@@ -254,7 +259,53 @@ namespace Unity.Muse.Texture
             TextToImageRequest settings,
             Action<TextToImageResponse, string> onDone)
         {
-            GenerativeAIBackend.GenerateInpainting(prompt, sourceGuid, mask, maskType, settings, onDone);
+            MuseTextureBackend.GenerateInpainting(prompt, sourceGuid, mask, maskType, settings, onDone);
+        }
+
+        /// <summary>
+        /// Will download the artifact, or load it from the cache on your current machine, if it exists.
+        /// </summary>
+        /// <param name="onReceived">Callback for when the artifact was successfully loaded and created. <b>T</b> will be <b>default</b> on error, and the error message will be in the 2nd parameter detailing the reason</param>
+        /// <param name="useCache">When <b>true</b> will attempt to load the cached representation of this artifact from the local machine's GeneratedArtifactCache, and if not found will download it from the client. <b>false</b> will always reach out to the client and update the cache</param>
+        public override void GetArtifact(ArtifactCreationDelegate onReceived, bool useCache)
+        {
+            if (useCache && IsCached)
+            {
+                var artifact = ReadFromCache(out var rawData);
+                onReceived?.Invoke(artifact, rawData, string.Empty);
+
+                return;
+            }
+
+            void HandleReceiveArtifactData(object data, string msg)
+            {
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    onReceived?.Invoke(default, Array.Empty<byte>(), msg);
+                    return;
+                }
+                var deserializedArtifact = CreateFromData((byte[])data, true);
+                onReceived(deserializedArtifact, (byte[])data, msg);
+            }
+            MuseTextureBackend.OnStatusChange -= OnStatusChange;
+            MuseTextureBackend.OnStatusChange += OnStatusChange;
+            MuseTextureBackend.AddGuidToCheckStatusPeriodically(Guid);
+
+            void OnStatusChange(string guid, string status)
+            {
+                if (Guid == guid)
+                {
+                    MuseTextureBackend.OnStatusChange -= OnStatusChange;
+                    if (status == GenerativeAIBackend.StatusEnum.failed)
+                    {
+                        onReceived?.Invoke(default, Array.Empty<byte>(), $"Artifact generation failed. GUID={guid}");
+                    }
+                    else if (status == GenerativeAIBackend.StatusEnum.done)
+                    {
+                        GenerativeAIBackend.DownloadArtifact(this, HandleReceiveArtifactData);
+                    }
+                }
+            }
         }
 
         /// <summary>

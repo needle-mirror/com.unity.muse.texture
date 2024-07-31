@@ -16,7 +16,7 @@ namespace Unity.Muse.Texture.Pbr.Cache
 {
     internal static class PbrDataCache
     {
-        internal static readonly string k_FileStreamPath = $"{Application.persistentDataPath}/{k_DatabaseName}";
+        internal static readonly string k_FileStreamPath = $"{ApplicationExtensions.museDbPath}/{k_DatabaseName}";
         const string k_DatabaseName = "PbrDataCache.db";
         const string k_ArtifactCollectionName = "PbrData";
 

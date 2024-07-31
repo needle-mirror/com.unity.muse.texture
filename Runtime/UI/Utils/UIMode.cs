@@ -21,7 +21,7 @@ namespace Unity.Muse.Texture
 
         Model m_Model;
 
-        public void Activate(MainUI mainUI)
+        public void Activate(MainUI mainUI, string modeKey1)
         {
             m_Model = mainUI.model;
 
@@ -35,15 +35,11 @@ namespace Unity.Muse.Texture
 
         void AddListeners()
         {
-			m_Model.GetData<FeedbackManager>().OnLiked += OnLiked;
-            m_Model.GetData<FeedbackManager>().OnDislike += OnDislike;
             m_Model.OnCurrentPromptChanged += OnPromptChanged;
         }
 
         void RemoveListeners()
         {
-			m_Model.GetData<FeedbackManager>().OnLiked -= OnLiked;
-            m_Model.GetData<FeedbackManager>().OnDislike -= OnDislike;
             m_Model.OnCurrentPromptChanged -= OnPromptChanged;
         }
 
@@ -51,14 +47,6 @@ namespace Unity.Muse.Texture
         {
             var hasValidPrompt = !string.IsNullOrWhiteSpace(prompt) && prompt.Length >= PromptOperator.MinimumPromptLength;
             m_Model.GetData<GenerateButtonData>().SetGenerateButtonData(hasValidPrompt, hasValidPrompt ? null : TextContent.generateButtonEnterPromptTooltip);
-        }
-
-		void OnLiked(Artifact artifact)
-        {
-        }
-
-        void OnDislike(Artifact artifact)
-        {
         }
     }
 }

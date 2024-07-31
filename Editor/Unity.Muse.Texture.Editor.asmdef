@@ -4,7 +4,9 @@
     "references": [
         "GUID:e0205eb74dc764cf6ab9891355857e49",
         "GUID:819fccdbfb1c24ecabbe056f5abed3ac",
-        "GUID:ba676c383ebd54fdcbd97ce70f06b009"
+        "GUID:ba676c383ebd54fdcbd97ce70f06b009",
+        "GUID:2edcef92c5756d2da266000405840bb7",
+        "GUID:df5ee7bbe4797deda3ee000426751c81"
     ],
     "includePlatforms": [
         "Editor"
@@ -15,6 +17,10 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [{
+        "name": "Unity",
+        "expression": "2023.2.0a22",
+        "define": "ENABLE_UNITYENGINE_ANALITICS"
+    }],
     "noEngineReferences": false
 }

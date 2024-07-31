@@ -14,7 +14,7 @@ namespace Unity.Muse.Texture
         const float k_YSpeed = 20.0f;
 
         private int m_PointerId = -1;
-        
+
         public RotationManipulator()
         {
         }
@@ -42,17 +42,17 @@ namespace Unity.Muse.Texture
 
         public void OnPointerDown(PointerDownEvent evt, bool useModifier, bool capture = true)
         {
-            var isShiftPressed = !useModifier || evt.shiftKey; 
+            var isShiftPressed = !useModifier || evt.shiftKey;
 
             if (!isShiftPressed)
                 return;
-            
-            m_PointerId = evt.pointerId;  
+
+            m_PointerId = evt.pointerId;
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
         {
-           OnPointerMove(evt, true); 
+           OnPointerMove(evt, true);
         }
 
         public void OnPointerMove(PointerMoveEvent evt, bool useModifier, bool capture = true)
@@ -66,14 +66,14 @@ namespace Unity.Muse.Texture
             {
                 target.CapturePointer(evt.pointerId);
             }
-            
+
             var rotX = TotalRotation.x + evt.deltaPosition.x * k_XSpeed * 0.02f;
             var rotY =  TotalRotation.y + evt.deltaPosition.y * k_YSpeed * 0.02f;
             TotalRotation = new Vector2(rotX, rotY);
 
             OnDrag?.Invoke(TotalRotation);
             evt.StopPropagation();
-            evt.StopImmediatePropagation(); 
+            evt.StopImmediatePropagation();
         }
 
         public void OnPointerUp(PointerUpEvent evt)
@@ -84,15 +84,20 @@ namespace Unity.Muse.Texture
 
         private static void OnMouseMove(MouseMoveEvent evt)
         {
-           OnMouseMove(evt, true); 
+           OnMouseMove(evt, true);
         }
-        
+
         public static void OnMouseMove(MouseMoveEvent evt, bool useModifier)
         {
             var isShiftPressed = !useModifier || evt.shiftKey;
             if (!isShiftPressed)
                 return;
             evt.StopPropagation();
+        }
+
+        internal void SetRotation(Vector2 rotation)
+        {
+            TotalRotation = rotation;
         }
     }
 }

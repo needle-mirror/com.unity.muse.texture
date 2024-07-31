@@ -1,4 +1,4 @@
-using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 namespace Unity.Muse.Texture
@@ -6,11 +6,16 @@ namespace Unity.Muse.Texture
     internal class RotationProxy : Manipulator
     {
         public bool active { get; set; } = true;
-        RotationManipulator m_RotationManipulator;
-
+        private readonly IEnumerable<RotationManipulator> k_RotationManipulators;
+        
         public RotationProxy(RotationManipulator rotationManipulator)
         {
-            m_RotationManipulator = rotationManipulator;
+            k_RotationManipulators = new[]{rotationManipulator};
+        }
+        
+        public RotationProxy(IEnumerable<RotationManipulator> rotationManipulators)
+        {
+            k_RotationManipulators = rotationManipulators;
         }
 
         protected override void RegisterCallbacksOnTarget()
@@ -43,14 +48,21 @@ namespace Unity.Muse.Texture
                 return;
             
             target.ReleasePointer(evt.pointerId);
-            m_RotationManipulator.OnPointerUp(evt);
+            foreach (var manipulator in k_RotationManipulators)
+            {
+                manipulator.OnPointerUp(evt);
+            }
         }
 
         private void OnPointerMove(PointerMoveEvent evt)
         {
             if(!active)
                 return;
-            m_RotationManipulator.OnPointerMove(evt, false, false);
+            
+            foreach (var manipulator in k_RotationManipulators)
+            {
+                manipulator.OnPointerMove(evt, false, false);
+            }
         }
 
         private void OnPointerDown(PointerDownEvent evt)
@@ -59,7 +71,10 @@ namespace Unity.Muse.Texture
                 return;
 
             target.CapturePointer(evt.pointerId);
-            m_RotationManipulator.OnPointerDown(evt, false, false);
+            foreach (var manipulator in k_RotationManipulators)
+            {
+                manipulator.OnPointerDown(evt, false, false);
+            }
         }
     }
 }

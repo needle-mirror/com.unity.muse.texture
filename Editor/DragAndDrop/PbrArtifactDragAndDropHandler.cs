@@ -30,7 +30,7 @@ namespace Unity.Muse.Texture.Editor
 
             m_BaseMap = (ImageArtifact)imageArtifacts[0];
             m_ProcessedMaterialData = PbrDataCache.GetPbrMaterialData(m_BaseMap);
-            
+
             Debug.Assert(m_BaseMap != null);
             Debug.Assert(m_ProcessedMaterialData.MetallicMapPNGData != null);
             Debug.Assert(m_ProcessedMaterialData.HeightmapPNGData != null);
@@ -51,7 +51,7 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropSceneView(GameObject dropUpon, Vector3 worldPosition)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(false, ""));
 
             DropOnGameObject(dropUpon, worldPosition, m_ProcessedMaterialData);
 
@@ -60,12 +60,13 @@ namespace Unity.Muse.Texture.Editor
 
         void DropOnGameObject(GameObject go, Vector3 worldPosition, ProcessedPbrMaterialData materialData)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(false, ""));
+
             if (!EvaluateDropTarget(go))
             {
                 return;
             }
-            
+
             Undo.RegisterFullObjectHierarchyUndo(go, $"Add PBR material ({go.name})");
 
             var meshRenderer = go.GetComponent<MeshRenderer>();
@@ -74,8 +75,8 @@ namespace Unity.Muse.Texture.Editor
             MaterialGeneratorUtils.CreateTexturesAndMaterialForRP(materialData, material, true);
 
             MaterialExporter.CopyPbrMaterialProperty(material, m_BaseMap);
-            
-#if !HDRP_PIPELINE_ENABLED
+
+#if !USING_HDRP
             material.SetFloat(MuseMaterialProperties.useDisplacement, 0f);
 #endif
             meshRenderer.sharedMaterial = material;
@@ -88,7 +89,8 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropHierarchy(GameObject dropUpon)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(true, ""));
+
             HandleDropSceneView(dropUpon, Vector3.zero);
 
             ArtifactDropped?.Invoke(null, m_BaseMap);
@@ -101,17 +103,17 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropProject(string path)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = true, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(true, ""));
 
             path = GetPathRelativeToRoot(path);
             if (string.IsNullOrWhiteSpace(path))
                 path = "Assets";
 
             var fileName = MaterialExporter.GetMaterialName(m_BaseMap);
-            
+
             path = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(path, fileName + ".mat"));
 
-            MaterialExporter.ExportMaterial(m_BaseMap, m_ProcessedMaterialData, path, ArtifactDropped); 
+            MaterialExporter.ExportMaterial(m_BaseMap, m_ProcessedMaterialData, path, ArtifactDropped);
         }
 
         static string GetPathRelativeToRoot(string path)

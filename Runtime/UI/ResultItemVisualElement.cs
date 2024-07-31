@@ -121,13 +121,7 @@ namespace Unity.Muse.Texture
             if (!isUpscale && Artifact is IVariateArtifact variateArtifact)
             {
                 var numVariations = CurrentModel.CurrentOperators.GetOperator<GenerateOperator>()?.GetCount() ?? 4;
-                var label = $"Create {numVariations} Variation";
-
-                if (numVariations > 1)
-                {
-                    label += "s";
-                }
-
+                var label = $"Create {numVariations} Variation{(numVariations > 1 ? "s" : "")}";
                 actions.Add(new ContextMenuAction
                 {
                     id = (int)Actions.CreateVariations,
@@ -199,44 +193,6 @@ namespace Unity.Muse.Texture
                                 label = TextContent.starSingle
                             });
                         }
-
-                        if (IsLiked())
-                        {
-                            actions.Add(new ContextMenuAction
-                            {
-                                enabled = true,
-                                id = (int)Actions.FeedbackLike,
-                                label = TextContent.removeLike
-                            });
-                        }
-                        else if(!IsLiked() && !IsDisliked())
-                        {
-                            actions.Add(new ContextMenuAction
-                            {
-                                enabled = true,
-                                id = (int)Actions.FeedbackLike,
-                                label = TextContent.like
-                            });
-                        }
-
-                        if (IsDisliked())
-                        {
-                            actions.Add(new ContextMenuAction
-                            {
-                                enabled = true,
-                                id = (int)Actions.Feedback,
-                                label = TextContent.removeDislike
-                            });
-                        }
-                        else if(!IsLiked() && !IsDisliked())
-                        {
-                            actions.Add(new ContextMenuAction
-                            {
-                                enabled = true,
-                                id = (int)Actions.Feedback,
-                                label = TextContent.dislike
-                            });
-                        }
                     }
 
                     if (!ShouldEditButtonBeVisible() && canRefine)
@@ -298,12 +254,6 @@ namespace Unity.Muse.Texture
 
             switch (id)
             {
-                case Actions.FeedbackLike:
-                    CurrentModel.GetData<FeedbackManager>().ToggleLike(m_Artifact);
-                    break;
-                case Actions.Feedback:
-                    CurrentModel.GetData<FeedbackManager>().ToggleDislike(m_Artifact);
-                    break;
                 case Actions.SwitchPreview:
                     var changeState = m_ActivePreviewState == PreviewType.Image ? PreviewType.PBR : PreviewType.Image;
                     SetCurrentState(changeState);

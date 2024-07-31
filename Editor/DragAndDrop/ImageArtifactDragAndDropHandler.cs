@@ -33,7 +33,7 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropSceneView(GameObject dropUpon, Vector3 worldPosition)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = false, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(false, ""));
 
             if (dropUpon != null)
             {
@@ -53,7 +53,7 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropHierarchy(GameObject dropUpon)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = false, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(false, ""));
 
             if (dropUpon != null)
             {
@@ -73,7 +73,7 @@ namespace Unity.Muse.Texture.Editor
 
         public void HandleDropProject(string path)
         {
-            Model.SendAnalytics(new SaveTextureData {is_pbr_material = false, material_hash = ""});
+            Model.SendAnalytics(new SaveTextureAnalytic(false, ""));
 
             if (string.IsNullOrWhiteSpace(path))
                 path = ExporterHelpers.assetsRoot;
@@ -91,7 +91,7 @@ namespace Unity.Muse.Texture.Editor
             {
                 var tex = (Texture2D)ArtifactCache.Read(m_ImageArtifact);
                 var material = new Material(MaterialGeneratorUtils.GetDefaultShaderForPipeline());
-                material.mainTexture = tex;
+                material.SetTexture(MuseMaterialProperties.baseMapKey, tex);
                 renderer.material = material;
             }
         }

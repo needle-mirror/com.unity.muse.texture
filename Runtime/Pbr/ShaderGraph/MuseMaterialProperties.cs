@@ -98,7 +98,7 @@ namespace Unity.Muse.Texture
         public static void EnableShaderKeywords()
         {
             GlobalKeyword.Create("USING_HDRP");
-#if HDRP_PIPELINE_ENABLED
+#if USING_HDRP
             Shader.EnableKeyword("USING_HDRP");
 #else
             Shader.DisableKeyword("USING_HDRP");
