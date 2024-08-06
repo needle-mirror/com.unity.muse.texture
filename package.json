@@ -1,27 +1,27 @@
 {
   "name": "com.unity.muse.texture",
   "displayName": "Muse Texture",
-  "version": "1.1.0-pre.6",
+  "version": "1.1.0",
   "unity": "2022.3",
   "description": "With Muse Texture, you can create and edit AI-generated textures from text prompts and pattern guides. These generations are powered by Unity’s own proprietary and responsibly built model.",
   "dependencies": {
-    "com.unity.muse.common": "2.0.1",
+    "com.unity.muse.common": "2.0.2",
     "com.unity.shadergraph": "14.0.7"
   },
   "relatedPackages": {
-    "com.unity.muse.texture.tests": "1.1.0-pre.6",
-    "com.unity.muse.common.tests": "2.0.1"
+    "com.unity.muse.texture.tests": "1.1.0",
+    "com.unity.muse.common.tests": "2.0.2"
   },
   "_upm": {
     "changelog": ""
   },
   "upmCi": {
-    "footprint": "224fba61d888bb39e3769ecef3f7a85faef682d0"
+    "footprint": "0f0089975c419d2a55aa309c87a2b7094958d7fb"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.muse.texture@1.1/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityMuseAITools.git",
     "type": "git",
-    "revision": "bc965a3013cdd81c1043e2c16f9834283463c51a"
+    "revision": "e0c5e88178cc17be7bcf57b845426baf7dd2f1b6"
   }
 }
